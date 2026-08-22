@@ -18,6 +18,7 @@ what a hit means. Adapt the tool to what is available; the patterns matter, not 
 |---|---|---|
 | Existing descriptors | `find . -path "*/META-INF/workflow-module"` | version 2 needs one per module, containing the module id |
 | How the id is derived today | `grep -rn "spring.application.name" --include="*.yaml" --include="*.yml" --include="*.properties" .` | single-module applications took the id from here |
+| Module declared by a bean | `grep -rn "WorkflowModuleProperties" --include="*.java" .` | the third version 1 way of naming a module. The type is gone in version 2, so the bean method has to go and the id moves into the descriptor |
 | Module configuration files | `find . -name "*.yaml" -o -name "*.properties" \| grep -v application` | a module's own `<module-id>.yaml` also named the module |
 | Resource directories | `find . -path "*/src/main/resources/*/processes/*" -type d` | the directory name is the module id and has to stay the same |
 
@@ -48,11 +49,12 @@ configuration is where an upgrade is most often left half done.
 |---|---|---|
 | Removed overloads | `grep -rn "correlateMessage(\|startWorkflowByMessage(" --include="*.java" .` | the variants taking a message object are gone, inspect each hit |
 | `primary` | `grep -rn "@BpmnProcess" -A2 --include="*.java" . \| grep primary` | the attribute no longer exists |
-| Moved import | `grep -rn "io.vanillabp.integration.spi.aggregate.AggregatePersistenceAware" --include="*.java" .` | now `io.vanillabp.integration.spi.AggregatePersistenceAware` |
+| Aggregate repositories | `grep -rn "Repository<" --include="*.java" . \| grep -i aggregate` | version 1 required one per aggregate, and version 2 still uses it. On Spring Boot a missing one is not reported at startup, only at the first task delivery, as `No Spring Data repository defined for '<class>'!` |
 | Transaction annotations | `grep -rn "@Transactional" --include="*.java" .` | see [code-changes.md](code-changes.md), and check superclasses, interfaces and custom annotations too |
 | Dead annotation | `grep -rn "javax.transaction.Transactional" --include="*.java" .` | honored by neither Spring Framework 7 nor Quarkus 3, it does nothing |
-| Own implementations | `grep -rn "implements ProcessService\|implements AggregatePersistenceAware\|AggregatePersistenceAware<" --include="*.java" .` | both interfaces gained methods, all of them `default` |
-| Workflow services per aggregate | `grep -rln "@WorkflowService" --include="*.java" .` | version 2 requires one class per aggregate class, with the other processes as `secondaryBpmnProcesses` |
+| Own implementations | `grep -rn "implements ProcessService" --include="*.java" .` | `ProcessService` gained methods, all of them `default`, so test doubles keep compiling |
+| Workflow services | `grep -rln "@WorkflowService" --include="*.java" .` | read every one of them. Two classes declaring a DIFFERENT `bpmnProcess` for one aggregate fail the boot in version 2, so the second process moves into the first class' `secondaryBpmnProcesses`. Several classes on the SAME `bpmnProcess` stay as they are |
+| Combined workflow and business service | read the same files | a class holding both `@WorkflowTask` methods and the business methods the API calls. Deleting its `@Transactional` takes the transaction away from the business methods too, and no grep decides this reliably |
 | Version attribute | `grep -rn "@WorkflowTask" -A2 --include="*.java" . \| grep "version"` | evaluated for real now, so overlapping ranges fail the boot |
 | Sync annotations | `grep -rn "@SyncWithBPMS\|@NoSyncWithBPMS" --include="*.java" .` | shipped for real now, and annotating one attribute decides what happens to all the others |
 

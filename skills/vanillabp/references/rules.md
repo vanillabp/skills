@@ -54,17 +54,56 @@ Pick a strategy and say which one:
 
 The blueprint `persistence-parallel-branches` shows the first and explains when the others fit.
 
-## 8. One `@WorkflowService` class per workflow aggregate class
+## 8. One primary BPMN process per workflow aggregate
 
-When a second process works on the same aggregate, name it in `secondaryBpmnProcesses` of the
-existing class and put its `@WorkflowTask` methods there. Do not annotate a second class with
-`@WorkflowService` for that aggregate: VanillaBP builds one `ProcessService` per aggregate class
-and starts the process of whichever class the classpath scan found first, so `startWorkflow` may
-start the wrong process. Nothing says so, the workflow runs and the aggregate ends up half
-filled.
+VanillaBP builds one `ProcessService` per workflow aggregate class, which is what
+`ProcessService<Ride>` injects, so exactly one BPMN process is the one `startWorkflow` starts.
+Two classes declaring a different `bpmnProcess` for the same aggregate would make that a coin
+flip, so VanillaBP refuses to start and names both classes and both processes.
 
-This is easy to walk into when two blueprints are composed, because each brings a handler class
-of its own.
+When a second process works on the same aggregate, declare it in `secondaryBpmnProcesses` of the
+class carrying the primary one. A process called by a call activity is the typical case.
+
+Several classes annotated with `@WorkflowService` for one aggregate are allowed as long as each
+of them declares the same `bpmnProcess`. That is what makes the split below possible.
+
+This rule is easy to break when two blueprints are composed, because each brings a handler class
+declaring a `bpmnProcess` of its own.
+
+### Splitting a large workflow
+
+A large process makes both `Service` and `WorkflowTaskHandler` large, and a single pair of
+classes for thirty tasks helps nobody. Large processes have sections, and the model usually says
+where they are: an embedded subprocess, a group, or the status transitions the process moves
+through.
+
+Give each section a Java package of its own with its own `Service` and its own
+`WorkflowTaskHandler`. Every one of those handler classes declares the same `bpmnProcess`, so
+they stay one workflow with one `ProcessService` while the code follows the structure of the
+model.
+
+```
+<base-package>.<usecase>
+├── model/                       the aggregate, shared by all sections
+├── application/                 section: the application is filled in
+│   ├── Service.java
+│   └── WorkflowTaskHandler.java
+└── assessment/                  section: the application is assessed
+    ├── Service.java
+    └── WorkflowTaskHandler.java
+```
+
+### User tasks get a package of their own
+
+A user task is more than a `@WorkflowTask` method. It has an API of its own, because a user has
+to be shown the task and has to complete it, and many user tasks carry state of their own that
+lives until the task is completed and belongs to nobody else.
+
+So give each user task its own package, holding the classes serving only that task, its
+`ApiController` among them.
+
+The blueprint showing this comes with the Business Cockpit and does not exist yet, so treat this
+section as guidance and not as something you can copy from a repository.
 
 ## 9. Do not copy reference documentation into the generated project
 

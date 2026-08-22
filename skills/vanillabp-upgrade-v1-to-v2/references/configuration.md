@@ -37,14 +37,33 @@ than merging with it.
 
 ## Workflow modules are declared by a descriptor file
 
-Version 1 derived the module id from `spring.application.name` for single-module applications
-and from the name of the module's configuration file otherwise. Version 2 wants it stated
-explicitly, so that a module travels with its own artifact and is found the same way on both
-platforms. Add a text file whose content is the module id:
+Version 1 knew three ways to name a workflow module: `spring.application.name` for
+single-module applications, the name of the module's configuration file, or a static bean method
+declaring the id together with the module's properties class.
+
+```java
+// version 1
+@Bean
+public static WorkflowModuleProperties ModuleProperties() {
+
+    return new WorkflowModuleProperties(
+            LoanApprovalProperties.class,
+            LoanApprovalProperties.WORKFLOW_MODULE_ID);
+
+}
+```
+
+Version 2 wants the id stated explicitly and in one place, so that a module travels with its own
+artifact and is found the same way on both platforms. Add a text file whose content is the module
+id:
 
 ```
 src/main/resources/META-INF/workflow-module      # content: loan-approval
 ```
+
+Delete the bean method afterwards. `WorkflowModuleProperties` no longer exists, so a project
+keeping it does not compile. The properties class it named stays as it is, because binding a
+module's own configuration has not changed.
 
 One file per workflow module, placed in the artifact implementing that use case. An application
 without any descriptor is treated as one single global module, so the file is what turns a use

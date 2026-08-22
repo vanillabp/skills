@@ -36,13 +36,18 @@ directory has to match the workflow module ID.
 An application assembled from several blueprints stays readable only if all of them agree on
 this layout, so keep it.
 
+That is the layout of one use case of moderate size. A large process is split by section and a
+user task gets a package of its own, both described under
+[rule 8](rules.md#8-one-primary-bpmn-process-per-workflow-aggregate). The classes keep their
+names and their roles in every one of those packages.
+
 ## One class per direction
 
 Talking to a BPMS happens in both directions and the two are different architectural things:
 
 ```
-ApiController ──────────┐
-                        ├──→ Service ──→ Workflow ──→ ProcessService     outgoing
+ApiController ─────────────────┐
+                               ├──→ Service ──→ Workflow ──→ ProcessService     outgoing
 BPMS ──→ WorkflowTaskHandler ──┘                                         incoming
 ```
 

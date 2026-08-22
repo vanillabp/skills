@@ -76,6 +76,28 @@ excludes `TaskException`, so the version 1 line boots and behaves as before. Wha
 is an annotation joining VanillaBP's transaction without such a rule, because a `TaskException`
 would then discard the aggregate changes instead of committing them.
 
+### Check first whether the class is also the business service
+
+Small projects often put everything in one class: the `@WorkflowTask` methods and the business
+methods the API calls sit side by side. Deleting the annotation there takes the transaction away
+from the business methods as well, and they still need one. VanillaBP wraps `@WorkflowTask`
+methods only, and every call into `ProcessService` requires an active transaction, so a
+`startWorkflow` from an endpoint fails once the annotation is gone.
+
+Nothing reports this. The application starts, the workflows the BPMS drives keep working, and
+only the paths entered from the API break.
+
+So decide per class:
+
+- Split it along the reference structure, which is the way the blueprints do it: the
+  `@WorkflowTask` methods into `WorkflowTaskHandler`, the business code into `Service`, the calls
+  into `ProcessService` into `Workflow`. Only the first of those loses its annotation.
+- Or keep `@Transactional(noRollbackFor = TaskException.class)` on the combined class. The
+  startup check accepts it, the business methods keep their transaction and the `@WorkflowTask`
+  contract stays intact.
+
+Deleting the annotation while leaving the class combined is the one option that is wrong.
+
 The check also reports an annotation inherited from a superclass or an interface and one hidden
 inside a custom annotation of yours. If the annotation sits on a bean the handler calls, no
 startup check can see it, and the task fails at runtime with a message naming the workflow, the
@@ -89,23 +111,13 @@ Code calling `ProcessService` still needs a transaction: `startWorkflow`, `compl
 `cancelTask`, `completeUserTask`, `cancelUserTask` and `correlateMessage` require an active one.
 The read-only viewer methods do not.
 
-## Hand-written `ProcessService` and `AggregatePersistenceAware` implementations
+## Hand-written `ProcessService` implementations
 
-Both interfaces gained methods and both made them `default`, so this does not break again.
+`ProcessService` gained methods and made them `default`, so this does not break again.
+`getProcessDefinitions`, `getBpmnXml`, `getWorkflowHistory` and `startWorkflowByMessage(A, String)`
+are implemented by a VanillaBP adapter, so test doubles keep compiling and only
+`getWorkflowModuleId()` stays abstract.
 
-`ProcessService`: `getProcessDefinitions`, `getBpmnXml`, `getWorkflowHistory` and
-`startWorkflowByMessage(A, String)` are `default`, implemented by a VanillaBP adapter. Test
-doubles keep compiling, and only `getWorkflowModuleId()` stays abstract.
-
-`AggregatePersistenceAware`: all methods are `default` with guiding messages. Implement
-`loadById(Object)`, because VanillaBP loads aggregates itself now for task processing and
-aggregate sync. If your aggregate's ID does not convert losslessly from and to `String`, either
-return the ID type from `getAggregateIdType()` or return `null` there to own the serialized form
-yourself. Remote BPMS also need `getAggregateIdName()`.
-
-The platform-provided implementations cover all of this, so this concerns your own ones only. On
-Quarkus that circle is wider now than in version 1: an aggregate managed by a Panache repository,
-written as a Panache active record for JPA or MongoDB, or managed by a Spring Data repository is
-persisted by VanillaBP itself, so the `AggregatePersistenceAware` a version 1 Quarkus application
-had to write for exactly that can be deleted. Keep it where it does more than store and load, and
-keep in mind that your own implementation always wins over the built-in one.
+Custom aggregate persistence is not part of the upgrade. Version 1 offered no SPI for it, so a
+version 1 project persists through Spring Data with JPA or MongoDB and version 2 does the same
+out of the box. See [dependencies.md](dependencies.md).

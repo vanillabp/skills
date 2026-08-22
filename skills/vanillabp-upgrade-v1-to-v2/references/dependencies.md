@@ -55,14 +55,15 @@ Application modules that must not depend on a specific BPMS use the support modu
 `io.vanillabp:vanillabp-spring-boot-support` respectively `io.vanillabp:vanillabp-quarkus-support`,
 which bring the business SPI `io.vanillabp:vanillabp-integration-spi` transitively.
 
-## One import moves
+## Persistence needs no dependency change
 
-Custom aggregate persistence implemented `AggregatePersistenceAware` from a Spring-specific
-package. The interface now exists exactly once, in the business SPI:
+Version 1 persisted workflow aggregates through Spring Data, either JPA or MongoDB, and a
+repository for the aggregate had to exist. Version 2 does both out of the box, so an upgraded
+project changes nothing here. On Quarkus the built-in support is wider than it was: an aggregate
+managed by a Panache repository, written as a Panache active record for JPA or MongoDB, or
+managed by a Spring Data repository is persisted by VanillaBP itself.
 
-```java
-// before
-import io.vanillabp.integration.spi.aggregate.AggregatePersistenceAware;
-// after
-import io.vanillabp.integration.spi.AggregatePersistenceAware;
-```
+A persistence of your own is new in version 2. Its SPI,
+`io.vanillabp.integration.spi.AggregatePersistenceAware`, did not exist in version 1, so no
+version 1 project implements it and the upgrade never has to move or rename it. It becomes
+interesting only if you want custom persistence now that you can have it.

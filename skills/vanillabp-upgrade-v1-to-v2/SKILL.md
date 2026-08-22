@@ -35,7 +35,7 @@ what each finding means. Produce a written inventory before touching a file:
 - every `vanillabp.*` and BPMS-specific configuration key in every profile and test resource,
 - every occurrence of the removed API,
 - every transaction annotation reaching a `@WorkflowTask` method,
-- every hand-written `ProcessService` or `AggregatePersistenceAware` implementation.
+- every hand-written `ProcessService` implementation, test doubles included.
 
 Show that inventory to the user, with the count per item. It is also the checklist you tick off.
 
@@ -50,15 +50,18 @@ own migration guide for it.
 
 The adapter artifacts were renamed and every adapter now has a Quarkus artifact too. The table
 is in [references/dependencies.md](references/dependencies.md). Then build: the compiler points
-straight at the three removed overloads, at `@BpmnProcess.primary` and at the moved
-`AggregatePersistenceAware` import.
+straight at the three removed overloads and at `@BpmnProcess.primary`. Persistence needs nothing
+here, because what version 1 could do, JPA and MongoDB through Spring Data, version 2 does out
+of the box.
 
 ### Step 3: declare the workflow modules, then move the configuration
 
-Version 2 wants the module id stated explicitly in a `META-INF/workflow-module` descriptor
-rather than derived from `spring.application.name` or from a file name. Keep the ids you had,
-because they name BPMS tenants and resource directories, and changing one detaches the running
-workflows of that module from their configuration.
+Version 2 wants the module id stated explicitly in a `META-INF/workflow-module` descriptor.
+Version 1 derived it from `spring.application.name`, from the name of the module's configuration
+file, or from a static bean method returning a `WorkflowModuleProperties`. That type is gone, so
+find every one of the three and replace it with the descriptor. Keep the ids you had, because
+they name BPMS tenants and resource directories, and changing one detaches the running workflows
+of that module from their configuration.
 
 Then move the configuration key by key, following
 [references/configuration.md](references/configuration.md). Start the application afterwards and
@@ -69,6 +72,10 @@ follow the startup messages, which name every missing key.
 Remove `@Transactional` from workflow services and check that nothing else wraps a
 `@WorkflowTask` method in a transaction of its own. The before and after is in
 [references/code-changes.md](references/code-changes.md).
+
+Before deleting an annotation, check whether the class is also the business service. Small
+projects often keep both in one class, and the business methods still need their transaction,
+so there the annotation stays or the class gets split.
 
 ### Step 5: verify against the BPMS
 
