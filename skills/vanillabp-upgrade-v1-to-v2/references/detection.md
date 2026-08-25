@@ -34,7 +34,8 @@ configuration.
 | Per-module adapter settings | `grep -rn "workflow-modules" -A5 . \| grep -n "adapters"` | move to `vanillabp.adapters.<id>.*` |
 | Camunda 7 engine settings | `grep -rn "camunda.bpm\|camunda:" --include="*.yaml" --include="*.yml" --include="*.properties" .` | the Camunda Spring Boot starter is gone in version 2 |
 | Camunda 8 client settings | `grep -rn "zeebe.client\|camunda.client" .` | replaced by `vanillabp.adapters.<id>.*` |
-| Tenants | `grep -rn "use-tenants\|tenant-id" .` | `use-tenants` becomes `name-clash-avoidance`, and the default changed |
+| Tenants | `grep -rn "use-tenants\|tenant-id" .` | `use-tenants` becomes `name-clash-avoidance`; `by-adapter` is the default and matches version 1, so only `use-tenants: false` needs a line |
+| Camunda 8 user tasks | `grep -rn "formKey" src/main/resources` | a `formKey` on a user task is the construction VanillaBP 1 dropped in 1.7.0 and version 2 does not serve. The model has to change, and the user tasks open on it have to be finished BEFORE the upgrade |
 | Task timeout | `grep -rn "task-timeout" .` | renamed to `job-timeout` |
 | Async definitions | `grep -rn "use-bpmn-async-definitions" .` | not configurable any more |
 | Removed keys | `grep -rn "allow-connectors\|retry-backoff\|vanillabp.resilience" .` | not in version 2, tell the VanillaBP team if the project relies on them |
