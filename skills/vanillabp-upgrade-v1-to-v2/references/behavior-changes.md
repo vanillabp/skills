@@ -60,9 +60,11 @@ after the upgrade runs the handler once more, exactly as version 1 always did. N
 about it: an activated Camunda 8 job which is still there may be a handler waiting for its
 `completeTask` or a handler which crashed halfway, the cluster cannot tell the two apart, and a
 record written for the second case would skip business code which never ran. Tell the user to keep
-the version 1 guards until the tasks which were open at the upgrade have all been delivered once.
-Camunda 7 is not affected at all, because it delivers inside the engine's transaction and reports
-no delivery identity, so it has no such record to be missing.
+the version 1 guards until the tasks which were open at the upgrade have all been delivered once,
+and point them at the startup: where the BPMS holds tasks open which VanillaBP has no record of, it
+says so once per BPMN process with the number, and that number falls to zero as each of them is
+delivered once. Camunda 7 is not affected at all, because it delivers inside the engine's
+transaction and reports no delivery identity, so it has no such record to be missing.
 
 There is a uniform error contract for `@WorkflowTask` methods across all BPMS. A normal return
 completes the task, a `TaskException` becomes a BPMN error with the aggregate changes committed,
