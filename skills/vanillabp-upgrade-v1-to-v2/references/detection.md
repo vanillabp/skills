@@ -37,6 +37,7 @@ configuration.
 | Tenants | `grep -rn "use-tenants\|tenant-id" .` | `use-tenants` becomes `name-clash-avoidance`; `by-adapter` is the default and matches version 1, so only `use-tenants: false` needs a line |
 | Camunda 8 user tasks | `grep -rn "formKey" src/main/resources` | a `formKey` on a user task is the construction VanillaBP 1 dropped in 1.7.0 and version 2 does not serve. The model has to change, and the user tasks open on it have to be finished BEFORE the upgrade |
 | Task timeout | `grep -rn "task-timeout" .` | renamed to `job-timeout` |
+| Hexadecimal task ids | `grep -rn "task-id-as-hex-string" .` | if this was ever on, the task ids the application STORED are hexadecimal and version 2 reads decimally. A data migration, not a setting |
 | Async definitions | `grep -rn "use-bpmn-async-definitions" .` | not configurable any more |
 | Removed keys | `grep -rn "allow-connectors\|retry-backoff\|vanillabp.resilience" .` | not in version 2, tell the VanillaBP team if the project relies on them |
 | Resources location | `grep -rn "resources-location" .` | still valid but optional, usually deletable |

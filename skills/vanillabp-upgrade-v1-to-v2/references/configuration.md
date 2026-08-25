@@ -142,6 +142,7 @@ wikis.
 | `…adapters.camunda7.use-bpmn-async-definitions` | removed | the adapter forces `asyncBefore` and `asyncAfter` onto service-like tasks at parse time, so every task runs in its own transaction |
 | `…adapters.<bpms>.tenant-id` | `vanillabp.adapters.<id>.tenant-id` | the tenant belongs to the BPMS instance now rather than to the workflow module, and without it the module id is used exactly as in version 1 |
 | `…adapters.<bpms>.use-tenants: false` | `vanillabp.adapters.<id>.name-clash-avoidance: none` | one concept replaces it, see below |
+| `…adapters.camunda8.task-id-as-hex-string` | removed | not a property to move but DATA to migrate: version 2 reads task ids decimally and no setting changes that, so the ids the application stored while this was on have to be converted. The adapter names the setting where one turns up |
 | `vanillabp.allow-connectors`, `…retry-backoff` | not yet in version 2 | tell the VanillaBP team if you rely on them |
 | `vanillabp.resilience.*` | removed | never consumed, and retry settings return per adapter with their first consumer |
 
@@ -176,7 +177,10 @@ Three notes for upgraders:
   identifiers the engine answers by stay what they were.
 - Camunda 7 and Camunda 8 with `use-tenants: false`: this is the case which needs a line. Those
   workflows carry no tenant, the default deploys into one, and nothing would be found any more.
-  Set `name-clash-avoidance: none`.
+  Set `name-clash-avoidance: none`. On Camunda 7 the adapter counts the workflows the
+  configuration will not reach and warns at every start, so a missed case is noticed rather than
+  silent - but it is a warning, because leaving old workflows behind is also what the last step of
+  a BPMS migration looks like.
 - Camunda 8 without multi-tenancy: a cluster started from the stock image rejects a tenant id, so
   the boot ends with a message naming both ways out, `use-prefix` to keep the modules apart
   without a tenant and `none` where the identifiers are unique anyway. An application which ran
