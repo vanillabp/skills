@@ -93,11 +93,17 @@ Both are silent in the sense that the application starts and runs, and both chan
 workflows it can still find.
 
 **Tenants.** Version 1 isolated a workflow module by a BPMS tenant. Version 2 replaces
-`use-tenants` with `name-clash-avoidance`, and both Camunda adapters default to `none`. An
-application upgraded from version 1 therefore has to configure `by-adapter` to keep its tenants,
-on either BPMS. Camunda 7 users especially: with the default the deployment lands in no tenant,
-while the workflows started under version 1 live in their tenants and are found through them.
-Set `by-adapter` before starting the upgraded application against an existing database.
+`use-tenants` with `name-clash-avoidance`, whose default is `by-adapter` on both Camunda
+adapters, which is what version 1 did: a tenant per workflow module, named after the module. An
+application which ran version 1 with the defaults therefore needs no setting at all, and its
+workflows are found where they have always been.
+
+Ask the one question which does need an answer: did the application set `use-tenants: false`? If
+it did, its workflows carry no tenant, while the default deploys into one, and it will look past
+every workflow it started. Such an application has to configure
+`name-clash-avoidance: none`. On Camunda 8 there is a second case with the same shape, a cluster
+without multi-tenancy, which rejects a tenant id outright; the boot ends there with a message
+naming both ways out, so it cannot be missed.
 
 **Camunda 7 expressions.** Version 1 answered every BPMN expression by reading the aggregate.
 Version 2 writes the shared values as process variables and lets the engine resolve them, and

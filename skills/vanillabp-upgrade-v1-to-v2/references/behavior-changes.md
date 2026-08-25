@@ -8,7 +8,12 @@ with the user after the upgrade builds.
 An application can learn that a workflow ended. Version 1 offered nothing for it, so
 applications modelled a service task in front of every end event. `@WorkflowEnded` replaces
 that, and the old service task keeps working, so this is something to simplify at leisure rather
-than an upgrade step.
+than an upgrade step. On Camunda 8, tell the user to wait until the workflows they upgraded have
+ended before deleting that service task. The notification hangs off an execution listener the
+adapter writes into the model it deploys, and a workflow which was already running stays on the
+definition version it was started on, so it never triggers one. Camunda 7 has no such wait,
+because it attaches the same listener while it parses a process definition, which reaches every
+version its engine holds.
 
 BPMN signals can be sent. Version 1 had no API for it, so a signal event was only usable between
 two elements of the same model. `ProcessService.sendSignal(name)` broadcasts one now, and
@@ -38,7 +43,9 @@ unlikely, since VanillaBP probes before re-dispatching, yet not impossible.
 Camunda 7 does it that way as well now. It delivers tasks inside the engine's transaction, but
 every operation progressing a workflow runs after your commit, so it can be repeated when it
 loses a concurrency conflict. An application on Camunda 7 therefore needs a transaction outbox,
-which version 1 did not ask for.
+which version 1 did not ask for. Forgetting it is not a production surprise: where the first
+adapter in the priority list needs a two-phase commit and no store resolves, the application
+does not boot and the message names what to add.
 
 A repeated delivery of a task no longer runs your handler again. Version 1 passed the
 at-least-once delivery of remote BPMS straight through, so a redelivery invoked the
@@ -46,6 +53,16 @@ at-least-once delivery of remote BPMS straight through, so a redelivery invoked 
 what it processed and answers a repeated delivery from that record. The guards in your handlers
 stay correct and still cover what a record cannot: two deliveries running at the same time, and
 everything a handler does outside its transaction.
+
+There is a window right after the upgrade where it does not hold, and the guards are what carries
+it. A task which was open when the application was stopped has no record, so the first redelivery
+after the upgrade runs the handler once more, exactly as version 1 always did. Nothing can be done
+about it: an activated Camunda 8 job which is still there may be a handler waiting for its
+`completeTask` or a handler which crashed halfway, the cluster cannot tell the two apart, and a
+record written for the second case would skip business code which never ran. Tell the user to keep
+the version 1 guards until the tasks which were open at the upgrade have all been delivered once.
+Camunda 7 is not affected at all, because it delivers inside the engine's transaction and reports
+no delivery identity, so it has no such record to be missing.
 
 There is a uniform error contract for `@WorkflowTask` methods across all BPMS. A normal return
 completes the task, a `TaskException` becomes a BPMN error with the aggregate changes committed,
@@ -105,3 +122,18 @@ migration backlog.
 On 8.8 Camunda 8 cannot cancel a Camunda-managed user task by BPMN error, which is what
 `cancelUserTask` does, because the engine has no such command. A guiding error explains it.
 Model the error path explicitly until Camunda's listener support arrives.
+
+The workflows the user upgraded already carry their process variables, unlike on Camunda 7:
+version 1 handed the whole workflow aggregate to every command it sent, so an instance started
+under version 1 has a variable for everything its JSON serialization could read, the ID
+attribute included, which is what version 2's probes look for. Two cases break that and both are
+in the user's code:
+
+- the aggregate's ID attribute renamed for JSON (`@JsonProperty` on the ID). Version 1 wrote the
+  variable under the JSON name, version 2 looks for the name the persistence layer reports, and
+  every probe for a pre-upgrade instance then finds nothing;
+- an attribute version 1 serialized as a FIELD. Version 2 reads getters only, so the variable
+  keeps the last value version 1 wrote for good. That is a stale value rather than a missing one
+  and nothing reports it. Give the attribute a getter and share it.
+
+Check both while surveying the project, because neither shows up as an error.
