@@ -142,6 +142,7 @@ wikis.
 | `…adapters.camunda7.use-bpmn-async-definitions` | removed | the adapter forces `asyncBefore` and `asyncAfter` onto service-like tasks at parse time, so every task runs in its own transaction |
 | `…adapters.<bpms>.tenant-id` | `vanillabp.adapters.<id>.tenant-id` | the tenant belongs to the BPMS instance now rather than to the workflow module, and without it the module id is used exactly as in version 1 |
 | `…adapters.<bpms>.use-tenants: false` | `vanillabp.adapters.<id>.name-clash-avoidance: none` | one concept replaces it, see below |
+| `…adapters.camunda8.task-id-as-hex-string` | removed | not a property to move but DATA to migrate: version 2 reads task ids decimally and no setting changes that, so the ids the application stored while this was on have to be converted. The adapter names the setting where one turns up |
 | `vanillabp.allow-connectors`, `…retry-backoff` | not yet in version 2 | tell the VanillaBP team if you rely on them |
 | `vanillabp.resilience.*` | removed | never consumed, and retry settings return per adapter with their first consumer |
 
@@ -159,11 +160,10 @@ vanillabp:
       # name-clash-avoidance: none       # nothing is scoped, the old 'use-tenants: false'
 ```
 
-Both Camunda adapters default to `none`, because a Camunda 8 cluster without multi-tenancy
-rejects tenant ids and Camunda 7 can keep modules apart in more ways than one. An application
-upgraded from version 1 therefore has to configure `by-adapter` to keep its tenants, on either
-BPMS. As long as `none` applies, the adapter logs a WARN per workflow module naming the
-alternatives.
+Both Camunda adapters default to `by-adapter`, which is version 1's behavior, so an application
+which ran version 1 with the defaults keeps its tenants without configuring anything. Where
+`none` applies, the adapter logs a WARN per workflow module naming the alternatives, and
+`accept-unscoped-identifiers: true` puts that decision on record.
 
 Two settings that used to fit together now contradict each other and the boot says so: a
 `tenant-id` without any level using `by-adapter` fails, because the deployment would ignore the
@@ -172,17 +172,23 @@ the tenant can be used at all before deploying.
 
 Three notes for upgraders:
 
-- Camunda 7: version 1 deployed every workflow module into a tenant named after it. With the
-  default `none` the deployment lands in no tenant, which changes the identifiers the engine
-  answers by, while the workflows started in version 1 live in their tenants and are found
-  through them. Add `by-adapter` before starting the upgraded application against an existing
-  database.
-- Camunda 8: if you ran an early VanillaBP 2 version, its adapter deployed everything into the
-  default tenant regardless of the module, which is what `none` does, so nothing changes for you
-  unless you ask for a tenant with `by-adapter`, which needs multi-tenancy enabled, or for
-  prefixes with `use-prefix`.
+- Camunda 7: nothing to do where version 1 ran with its defaults. It deployed every workflow
+  module into a tenant named after it, and `by-adapter` deploys into the same one, so the
+  identifiers the engine answers by stay what they were.
+- Camunda 7 and Camunda 8 with `use-tenants: false`: this is the case which needs a line. Those
+  workflows carry no tenant, the default deploys into one, and nothing would be found any more.
+  Set `name-clash-avoidance: none`. On Camunda 7 the adapter counts the workflows the
+  configuration will not reach and warns at every start, so a missed case is noticed rather than
+  silent - but it is a warning, because leaving old workflows behind is also what the last step of
+  a BPMS migration looks like.
+- Camunda 8 without multi-tenancy: a cluster started from the stock image rejects a tenant id, so
+  the boot ends with a message naming both ways out, `use-prefix` to keep the modules apart
+  without a tenant and `none` where the identifiers are unique anyway. An application which ran
+  an early VanillaBP 2 version, whose adapter put everything into the default tenant, belongs to
+  the `none` case as well.
 - Process-Engine-API: that BPMS has no tenants, so `by-adapter` cannot work there. The adapter
-  fails the boot until you choose `use-prefix` or `none`.
+  fails the boot until you choose `use-prefix` or `none`. There was never a version 1 release of
+  it, so this is not an upgrade question.
 
 Switching to `use-prefix` changes the identifiers the BPMS sees, so it is a migration rather
 than a property change. Read
@@ -195,6 +201,13 @@ An application with one adapter dependency and one workflow module needs no `van
 property at all, because the classpath is the configuration. The adapter section, the module
 section and `resources-location` are all derived, and only what the BPMS itself needs, such as
 a cluster address, remains. Everything you configured explicitly keeps working.
+
+Where the application comes from a Camunda 8 adapter of 1.6.3 or earlier, two tables are left
+behind as well: `CAMUNDA8_DEPLOYMENTS` and `CAMUNDA8_RESOURCES`, or two MongoDB collections of
+the same names. That adapter kept its own record of what it had deployed so it could re-read the
+models of older process versions; 1.7.0 dropped it and version 2 asks the cluster instead. After
+the upgrade nothing reads them and they hold every BPMN the application ever deployed, so point
+the user at them. Dropping them is the user's decision, not something to do for them.
 
 ## A new section for remote BPMS: the outbox
 
