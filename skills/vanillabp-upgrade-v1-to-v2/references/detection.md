@@ -39,7 +39,8 @@ configuration.
 | Task timeout | `grep -rn "task-timeout" .` | renamed to `job-timeout` |
 | Hexadecimal task ids | `grep -rn "task-id-as-hex-string" .` | if this was ever on, the task ids the application STORED are hexadecimal and version 2 reads decimally. A data migration, not a setting |
 | Async definitions | `grep -rn "use-bpmn-async-definitions" .` | not configurable any more |
-| Removed keys | `grep -rn "allow-connectors\|retry-backoff\|vanillabp.resilience" .` | not in version 2, tell the VanillaBP team if the project relies on them |
+| Removed keys | `grep -rn "allow-connectors\|vanillabp.resilience" .` | not in version 2, tell the VanillaBP team if the project relies on them |
+| Retry backoff | `grep -rn "retry-backoff" .` | exists again on the Camunda 8 adapter, `vanillabp.adapters.<id>.retry-backoff`, `PT10S` by default and resolvable down to a single task |
 | Resources location | `grep -rn "resources-location" .` | still valid but optional, usually deletable |
 
 Search every profile file and every test resource, not only `application.yaml`. Test

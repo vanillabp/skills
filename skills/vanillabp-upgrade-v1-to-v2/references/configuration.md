@@ -143,8 +143,9 @@ wikis.
 | `…adapters.<bpms>.tenant-id` | `vanillabp.adapters.<id>.tenant-id` | the tenant belongs to the BPMS instance now rather than to the workflow module, and without it the module id is used exactly as in version 1 |
 | `…adapters.<bpms>.use-tenants: false` | `vanillabp.adapters.<id>.name-clash-avoidance: none` | one concept replaces it, see below |
 | `…adapters.camunda8.task-id-as-hex-string` | removed | not a property to move but DATA to migrate: version 2 reads task ids decimally and no setting changes that, so the ids the application stored while this was on have to be converted. The adapter names the setting where one turns up |
-| `vanillabp.allow-connectors`, `…retry-backoff` | not yet in version 2 | tell the VanillaBP team if you rely on them |
-| `vanillabp.resilience.*` | removed | never consumed, and retry settings return per adapter with their first consumer |
+| `vanillabp.allow-connectors` | not yet in version 2 | tell the VanillaBP team if you rely on it |
+| `…adapters.camunda8.retry-backoff` | `vanillabp.adapters.<id>.retry-backoff` | back on the Camunda 8 adapter, `PT10S` by default and resolvable per workflow module, workflow and task. It travels with every fail command which leaves the job retries |
+| `vanillabp.resilience.*` | removed | never consumed, and retry settings return per adapter with their first consumer, which is the row above |
 
 ## Keeping workflow modules apart: choose a mode
 
