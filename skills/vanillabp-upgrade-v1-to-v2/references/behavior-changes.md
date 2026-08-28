@@ -121,6 +121,13 @@ migration backlog.
 
 ## Camunda 8 specifically
 
+A failed job waits before the cluster hands it out again. Version 1 sent a backoff only where the
+application configured one or the model carried a `retryBackoff` task header, so a handler failing on
+something which needs a moment burned its three retries as fast as the cluster could redeliver.
+Version 2 defaults `vanillabp.adapters.<id>.retry-backoff` to `PT10S`, still resolvable per workflow
+module, workflow and task, and it does not read the task header any more. A model carrying one loses it
+without a word, so grep the models for it and move the value into the configuration of that task.
+
 On 8.8 Camunda 8 cannot cancel a Camunda-managed user task by BPMN error, which is what
 `cancelUserTask` does, because the engine has no such command. A guiding error explains it.
 Model the error path explicitly until Camunda's listener support arrives.
