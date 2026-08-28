@@ -39,7 +39,9 @@ configuration.
 | Task timeout | `grep -rn "task-timeout" .` | renamed to `job-timeout` |
 | Hexadecimal task ids | `grep -rn "task-id-as-hex-string" .` | if this was ever on, the task ids the application STORED are hexadecimal and version 2 reads decimally. A data migration, not a setting |
 | Async definitions | `grep -rn "use-bpmn-async-definitions" .` | not configurable any more |
-| Removed keys | `grep -rn "allow-connectors\|retry-backoff\|vanillabp.resilience" .` | not in version 2, tell the VanillaBP team if the project relies on them |
+| Removed keys | `grep -rn "allow-connectors\|vanillabp.resilience" .` | not in version 2, tell the VanillaBP team if the project relies on them |
+| Retry backoff | `grep -rn "retry-backoff" .` | unchanged as a property, `vanillabp.adapters.<id>.retry-backoff`, resolvable down to a single task - but it defaults to `PT10S` now where version 1 sent none |
+| Retry backoff in the model | `grep -rn "retryBackoff" --include="*.bpmn" .` | version 1 read a `retryBackoff` TASK HEADER per element, version 2 does not. Move the value into the configuration of that task, nothing reports the loss |
 | Resources location | `grep -rn "resources-location" .` | still valid but optional, usually deletable |
 
 Search every profile file and every test resource, not only `application.yaml`. Test
