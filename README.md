@@ -12,8 +12,10 @@ supporting the standard.
 |---|---|
 | [`vanillabp`](skills/vanillabp) | Builds a new application from a BPMN model, or grafts a BPMN scenario onto an existing one, by picking and composing the matching [blueprints](https://github.com/vanillabp-blueprints) |
 | [`vanillabp-upgrade-v1-to-v2`](skills/vanillabp-upgrade-v1-to-v2) | Surveys a VanillaBP 1 project for everything the upgrade to version 2 touches, then applies it |
+| [`vanillabp-adapter-building`](skills/vanillabp-adapter-building) | Builds or extends an adapter for a BPMS VanillaBP does not support yet — module layout, the adapter SPI, registration on both platforms |
 
-Both skills link the reference documentation instead of copying it, so an agent using them
+The first two are for applications; the third is for a team teaching VanillaBP to talk to another
+BPMS. All of them link the reference documentation instead of copying it, so an agent using them
 reads the current wiki instead of a snapshot. Where a skill and the documentation disagree, the
 documentation wins.
 
