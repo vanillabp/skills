@@ -125,8 +125,15 @@ A failed job waits before the cluster hands it out again. Version 1 sent a backo
 application configured one or the model carried a `retryBackoff` task header, so a handler failing on
 something which needs a moment burned its three retries as fast as the cluster could redeliver.
 Version 2 defaults `vanillabp.adapters.<id>.retry-backoff` to `PT10S`, still resolvable per workflow
-module, workflow and task, and it does not read the task header any more. A model carrying one loses it
-without a word, so grep the models for it and move the value into the configuration of that task.
+module, workflow and task.
+
+The `retryBackoff` task header is read as before, so a model which carries one needs no change. Two
+details differ. Version 1 looked at the header only where the element's `zeebe:taskDefinition` also
+carried a `retries` attribute, and that condition is gone. And version 2 has the property down to the
+single task, so the two can meet: where a task is configured AND modelled, the configured value of that
+one task wins, one line per element says so, and every level above the task loses to the model. A header
+which is no ISO-8601 duration warns once per element and leaves the configured value in force, where
+version 1 fell back to a backoff of zero.
 
 On 8.8 Camunda 8 cannot cancel a Camunda-managed user task by BPMN error, which is what
 `cancelUserTask` does, because the engine has no such command. A guiding error explains it.
