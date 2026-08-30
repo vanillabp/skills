@@ -144,7 +144,7 @@ wikis.
 | `…adapters.<bpms>.use-tenants: false` | `vanillabp.adapters.<id>.name-clash-avoidance: none` | one concept replaces it, see below |
 | `…adapters.camunda8.task-id-as-hex-string` | removed | not a property to move but DATA to migrate: version 2 reads task ids decimally and no setting changes that, so the ids the application stored while this was on have to be converted. The adapter names the setting where one turns up |
 | `vanillabp.allow-connectors` | not yet in version 2 | tell the VanillaBP team if you rely on it |
-| `…adapters.camunda8.retry-backoff` | `vanillabp.adapters.<id>.retry-backoff` | the same thing it was, the backoff of a failed job, resolvable per workflow module, workflow and task as before. It has a DEFAULT now (`PT10S`, where version 1 sent none unless configured), and the `retryBackoff` task header of the model is not read any more |
+| `…adapters.camunda8.retry-backoff` | `vanillabp.adapters.<id>.retry-backoff` | the same thing it was, the backoff of a failed job, resolvable per workflow module, workflow and task as before. It has a DEFAULT now (`PT10S`, where version 1 sent none unless configured). The `retryBackoff` task header of the model is read as before, and where a task carries both, the task-level property wins |
 | `vanillabp.resilience.*` | removed | never consumed, and retry settings return per adapter with their first consumer, which is the row above |
 
 ## Keeping workflow modules apart: choose a mode
