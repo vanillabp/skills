@@ -120,6 +120,12 @@ and logged by the utility, which wraps every listener for exactly that, so the s
 The requirement on the database is unchanged. Change streams need a replica set, which is what the
 Business Cockpit has always required.
 
+Shutdown behaves differently as well. The blocking driver cannot interrupt a change-stream poll in
+flight, so stopping the application waits until the server answers the poll. The property
+`mongodb.change-stream-max-await-time` bounds that wait and defaults to one second. A derived
+application on a database where polls are billed, such as Azure Cosmos DB, can raise it and accepts
+a slower shutdown in return.
+
 ## The update stream holds a thread
 
 Each open server-sent-events connection occupies a request thread for as long as the browser keeps
