@@ -35,15 +35,50 @@ The adapter artifacts were renamed from `<bpms>-spring-boot-adapter` to
 </dependency>
 ```
 
-| BPMS | Spring Boot | Quarkus |
-|---|---|---|
-| Camunda 7 | `org.camunda.community.vanillabp:camunda7-adapter-spring-boot` | `org.camunda.community.vanillabp:camunda7-adapter-quarkus` |
-| Camunda 8 | `org.camunda.community.vanillabp:camunda8-adapter-spring-boot` | `org.camunda.community.vanillabp:camunda8-adapter-quarkus` |
-| Process-Engine-API | `io.vanillabp:process-engine-api-adapter-spring-boot` | `io.vanillabp:process-engine-api-adapter-quarkus` |
+| BPMS | Spring Boot | Quarkus | Version |
+|---|---|---|---|
+| Camunda 7 | `org.camunda.community.vanillabp:camunda7-adapter-spring-boot` | `org.camunda.community.vanillabp:camunda7-adapter-quarkus` | `2.0.0` |
+| Camunda 8 | `org.camunda.community.vanillabp:camunda8-adapter-spring-boot` | `org.camunda.community.vanillabp:camunda8-adapter-quarkus` | `2.0.0` plus the cluster line, e.g. `2.0.0-8.9` |
+| Process-Engine-API | `io.vanillabp:process-engine-api-adapter-spring-boot` | `io.vanillabp:process-engine-api-adapter-quarkus` | `2.0.0` |
 
 Adapters are released independently of the platform, so they carry their own version. Let
 `io.vanillabp:vanillabp-bom` manage the platform artifacts and pin the adapter version
 separately.
+
+## The Camunda 8 version carries the cluster line
+
+The Camunda 8 adapter is published once per Camunda 8 minor, and that minor belongs to the
+version. A coordinate written without it resolves to nothing:
+
+```xml
+<dependency>
+  <groupId>org.camunda.community.vanillabp</groupId>
+  <artifactId>camunda8-adapter-spring-boot</artifactId>
+  <version>2.0.0-8.9</version>
+</dependency>
+```
+
+Which suffix belongs there is decided by the cluster the application talks to. Camunda promises
+a client against clusters of its own version and newer and says nothing about the other
+direction, so the client a build was compiled against is the lowest cluster version that build
+accepts. The rule that follows: take the line whose client pin is at or below your cluster's
+minor.
+
+Two lines are released at a time, plus a preview built against the alpha of the next minor.
+Today that is `-8.8` and `-8.9`, with `-8.10-alpha<n>` as the preview, so a cluster on 8.9 or
+newer asks for `-8.9` and one on 8.8 for `-8.8`. Read the lines and their client pins off the
+table in the [adapter's
+wiki](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki#which-release-line-to-use)
+rather than from here, because a line ends when the next minor goes GA.
+
+Nothing in your code depends on which line you pick, since the methods are identical on all of
+them and a call your cluster cannot serve fails with a message naming your line. Moving to
+another line means upgrading the cluster, so it is one decision and not two.
+
+Where the project uses Renovate, extend the preset the adapter ships
+(`github>vanillabp/camunda8-adapter//renovate/camunda8-lines.json`). It reads the suffix as a
+compatibility value and never changes it on its own, so no automatic update moves the
+application to a cluster minor it does not run.
 
 ## One dependency or two
 
