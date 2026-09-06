@@ -12,7 +12,9 @@ metadata:
 The Business Cockpit container was written in reactive style, on Spring WebFlux, Reactor and the
 reactive MongoDB driver. It has been rewritten in classic blocking style, on Spring MVC with
 virtual threads enabled. A customized business cockpit is an own Spring Boot application which
-depends on `io.vanillabp.businesscockpit:container`, extends
+depends on `io.vanillabp.businesscockpit:container` (from `0.8.0` on: on the new library
+`io.vanillabp.businesscockpit:business-cockpit`, see
+[references/dependencies.md](references/dependencies.md)), extends
 `io.vanillabp.cockpit.BusinessCockpitApplication` and overrides parts of it, so that rewrite
 reaches into the derived application as well.
 

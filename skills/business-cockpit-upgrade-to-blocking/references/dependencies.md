@@ -21,17 +21,27 @@ remains.
 
 ## The container itself
 
-The coordinates do not change. A customized business cockpit declares
+With `0.8.0` the former `container` module is split in two. The library `business-cockpit`
+carries everything a derived application uses, and it cannot run on its own. The remaining
+`container` is the runnable reference application: a main class, the concrete GUI controllers,
+demo users of the `local` profile and the application yamls. A customized business cockpit
+therefore switches its dependency:
 
 ```xml
 <dependency>
   <groupId>io.vanillabp.businesscockpit</groupId>
-  <artifactId>container</artifactId>
+  <artifactId>business-cockpit</artifactId>
 </dependency>
 ```
 
-and extends `io.vanillabp.cockpit.BusinessCockpitApplication`, before as afterwards. Only the
-version moves.
+Java packages are unchanged, so imports stay as they are. The application class still extends
+`io.vanillabp.cockpit.BusinessCockpitApplication`, which now lives in the library and no longer
+carries `@SpringBootApplication` or a main method; the derived application's own class provides
+both, which it already did. Two consequences of the thinner runtime deserve attention: the
+concrete GUI controllers of the reference application are no longer on the classpath, so a
+derived application implements its own subclasses of the abstract controllers (most already do,
+that is what the abstract classes are for), and the BPMS API must be configured (realm name and
+credentials) or the application fails at startup.
 
 ## API artifacts
 
