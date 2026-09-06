@@ -2,7 +2,7 @@
 
 ## Runtime
 
-| | Container 0.3.x | Container 0.4.x | The first blocking release |
+| | Container 0.3.x | Container 0.4.x | Container 0.8.0 (blocking) |
 |---|---|---|---|
 | Java | 17 | 21 | 21 |
 | Spring Boot | 3.0.x | 4.1.x | 4.1.x |

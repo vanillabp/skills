@@ -36,11 +36,10 @@ along with this one, from Spring Boot 3 to 4 and from Java 17 to 21;
 begins. An application already on `0.4.x` has that part behind it and only the reactive to
 blocking step left.
 
-The target is the first release built on the blocking runtime, which follows the `0.4.x` line. Its
-number was not fixed when this skill was written, so look it up before you write it into a POM:
-read the release notes of the `business-cockpit` repository and take the first version whose notes
-describe the blocking runtime. Where the release notes and this skill disagree, the release notes
-win.
+The target is `0.8.0`, the first release built on the blocking runtime. The versions between
+`0.4.x` and `0.8.0` are reserved for further releases of the reactive line, so a version in that
+range is still a source of this upgrade, not a target. Where the release notes of the
+`business-cockpit` repository and this skill disagree, the release notes win.
 
 ## How to run this
 
