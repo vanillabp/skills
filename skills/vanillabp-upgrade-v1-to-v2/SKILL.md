@@ -49,8 +49,10 @@ own migration guide for it.
 ### Step 2: swap the dependencies
 
 The adapter artifacts were renamed and every adapter now has a Quarkus artifact too. The table
-is in [references/dependencies.md](references/dependencies.md). Then build: the compiler points
-straight at the three removed overloads and at `@BpmnProcess.primary`. Persistence needs nothing
+is in [references/dependencies.md](references/dependencies.md). On Camunda 8 the version also
+names the minor of the cluster you talk to, so settle which one that is before writing the
+coordinate. Then build: the compiler points straight at the three removed overloads and at
+`@BpmnProcess.primary`. Persistence needs nothing
 here, because what version 1 could do, JPA and MongoDB through Spring Data, version 2 does out
 of the box.
 

@@ -11,6 +11,7 @@ what a hit means. Adapt the tool to what is available; the patterns matter, not 
 | Old adapter artifact | `grep -rn -- "-spring-boot-adapter" --include=pom.xml .` | renamed in version 2, see [dependencies.md](dependencies.md) |
 | Java version | `grep -rn "maven.compiler\|java.version\|<release>" --include=pom.xml .` | has to become 21 |
 | Platform version | `grep -rn "spring-boot-starter-parent\|quarkus.platform.version" --include=pom.xml .` | has to become Spring Boot 4.1 or Quarkus 3.37 |
+| Camunda 8 cluster minor | not in the project: ask which cluster the application talks to, or read the gateway version off its topology | the Camunda 8 adapter is published once per cluster minor and the minor is part of its version, see [dependencies.md](dependencies.md) |
 
 ## Workflow modules
 
