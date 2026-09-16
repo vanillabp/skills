@@ -70,6 +70,24 @@ There is a uniform error contract for `@WorkflowTask` methods across all BPMS. A
 completes the task, a `TaskException` becomes a BPMN error with the aggregate changes committed,
 and any other exception rolls the transaction back and leaves retrying to the BPMS.
 
+A `@TaskParam` gets the number the BPMS reported or no number at all. Version 1 bound the
+parameter by raw reflection, so a value reflection could not pass threw `IllegalArgumentException:
+argument type mismatch`, with nothing in the message to work from. VanillaBP 2 converts the value
+into the declared type, and since 2026-09-16 it converts a number only where the conversion keeps
+it: the value travels through its decimal form and is delivered only where it reads back as the
+same number. So a `BigDecimal` of `120.50` still reaches a `Double` parameter as `120.5`, because
+the two are the same number, while a `Long` of `3000000000` bound to an `int` ends the task instead
+of arriving as `-1294967296`. The message names the value, the declared type and the number which
+would have arrived. The same holds for an attribute of an aggregate a BPMS-initiated start writes,
+which goes through the same conversion.
+
+For an application coming from version 1 this is a return rather than a break: reflection refused
+every one of these pairs too. What it did accept, a `Long` and an `Integer` into a `long`, is
+accepted now as well. In between the two versions there were VanillaBP 2 snapshots which converted
+such a pair silently, so an application which tested against one of those may have a handler which
+has been working on a number nobody wrote. That is what the survey of step 0 looks for. There is
+no property which switches the refusal off.
+
 Operations on existing workflows find their BPMS by asking. `completeTask`, `cancelTask`, the
 user task operations and `correlateMessage` probe the prioritized adapters and remember the
 answer. A task or workflow no BPMS knows raises a guiding `TaskNotFoundException` or

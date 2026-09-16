@@ -62,6 +62,8 @@ configuration is where an upgrade is most often left half done.
 | Combined workflow and business service | read the same files | a class holding both `@WorkflowTask` methods and the business methods the API calls. Deleting its `@Transactional` takes the transaction away from the business methods too, and no grep decides this reliably |
 | Version attribute | `grep -rn "@WorkflowTask" -A2 --include="*.java" . \| grep "version"` | evaluated for real now, so overlapping ranges fail the boot |
 | Sync annotations | `grep -rn "@SyncWithBPMS\|@NoSyncWithBPMS" --include="*.java" .` | shipped for real now, and annotating one attribute decides what happens to all the others |
+| `@TaskParam` types | `grep -rn "@TaskParam" -A1 --include="*.java" .` | read the declared type of every one of them against the value the model maps in. A number is converted only where the conversion keeps the value, so `int` or `long` against a value which can carry a fraction or exceed the type, and `Double` or `Float` against a whole number larger than the type holds exactly, end the task instead of arriving wrong. Widen the type or map a value which fits. Version 1 refused these pairs too, so a project coming straight from version 1 finds nothing here; one which ran on a VanillaBP 2 snapshot in between may |
+| Aggregate attributes a BPMS-initiated start writes | `grep -rn "@WorkflowStartedByBpms" --include="*.java" .` | the process variables such a start carries are written into the aggregate through the same conversion, so check the type of every attribute a start event's model sets |
 
 ## BPMN models, Camunda 7 only
 
