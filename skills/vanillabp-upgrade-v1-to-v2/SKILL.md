@@ -34,6 +34,7 @@ what each finding means. Produce a written inventory before touching a file:
 - every workflow module and how its id is derived today,
 - every `vanillabp.*` and BPMS-specific configuration key in every profile and test resource,
 - every occurrence of the removed API,
+- every `@TaskParam` and its declared type, against the value the model maps into it,
 - every transaction annotation reaching a `@WorkflowTask` method,
 - every hand-written `ProcessService` implementation, test doubles included.
 
