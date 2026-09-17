@@ -112,7 +112,16 @@ attribute is a fix rather than a change: it ended every sync point with an
 `InaccessibleObjectException` before, and it travels as the id of its zone now.
 
 An attribute whose text nothing reads back is named while the application boots, once per attribute,
-with the type to share instead. It is a warning and the application boots.
+with the type to share instead. That one is a warning and the application boots.
+
+A `java.util.Calendar` attribute is the exception, since 2026-09-17. An aggregate which shares one
+does not start at all, because the text such an attribute wrote is the debug form of the
+implementation, 769 characters naming every field of it, and no model reads a point in time out of
+it. The message names the attribute, the class it belongs to and the type it is declared as, and it
+says to share an `Instant` instead, with a `TimeZone` or a `ZoneId` next to it where the zone
+matters too. Where no model needs the attribute, `@NoSyncWithBPMS` says so and the application
+starts. A `Calendar` in a nested object or in a collection is refused the same way. Version 1 wrote
+the dump into the BPMS, so nothing of value is lost by the change.
 
 Operations on existing workflows find their BPMS by asking. `completeTask`, `cancelTask`, the
 user task operations and `correlateMessage` probe the prioritized adapters and remember the
