@@ -2,6 +2,8 @@
 
 # VanillaBP agent skills
 
+[![Apache License V.2](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+
 Skills teaching an AI coding agent how to build business process applications with
 [VanillaBP](https://www.vanillabp.io). They follow the
 [Agent Skills specification](https://agentskills.io/specification), so the same files work in
