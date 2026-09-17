@@ -88,6 +88,32 @@ such a pair silently, so an application which tested against one of those may ha
 has been working on a number nobody wrote. That is what the survey of step 0 looks for. There is
 no property which switches the refusal off.
 
+A `@TaskParam` may also be declared as the type the aggregate holds. The platform shares an enum as
+the name of its constant and a value type as the text it travels as, and since 2026-09-16 the way
+back reads exactly those texts: a `UUID`, an enum, the `java.time` values `Instant`, `LocalDate`,
+`LocalTime`, `LocalDateTime`, `OffsetDateTime`, `OffsetTime`, `ZonedDateTime`, `Year`, `YearMonth`,
+`MonthDay`, `Duration`, `Period`, `ZoneId` and `ZoneOffset`, and since 2026-09-17 a
+`java.util.Date` and a `java.util.TimeZone` as well. Version 1 threw the same
+`argument type mismatch` for every one of them, so a handler which declares a `String` and parses it
+itself is the workaround an application is likely to carry, and it keeps working. The list is a
+selection rather than a promise about the JDK, so a type somebody misses is worth an issue.
+
+A `java.util.Calendar` and a `java.util.Locale` are refused, and the message names the type to
+declare instead. A text a type does not travel as is refused too, with an example of one it does,
+and a constant name the model invented is refused naming the constants the enum has.
+
+The text of a `java.util.Date` in the BPMS changed with that, and it is the one item here which is
+visible in the model. Version 1 and the VanillaBP 2 snapshots before 2026-09-17 shared such an
+attribute as `Wed Sep 16 21:55:30 CEST 2026`, and it is shared as `2026-09-16T19:55:30.123Z` now.
+The milliseconds survive and the text no longer depends on the server which wrote it, while an
+operator reads UTC rather than local time. Ask the user whether a BPMN expression of theirs compares
+that text, because such an expression reads something else from now on. A `java.util.TimeZone`
+attribute is a fix rather than a change: it ended every sync point with an
+`InaccessibleObjectException` before, and it travels as the id of its zone now.
+
+An attribute whose text nothing reads back is named while the application boots, once per attribute,
+with the type to share instead. It is a warning and the application boots.
+
 Operations on existing workflows find their BPMS by asking. `completeTask`, `cancelTask`, the
 user task operations and `correlateMessage` probe the prioritized adapters and remember the
 answer. A task or workflow no BPMS knows raises a guiding `TaskNotFoundException` or
