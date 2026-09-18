@@ -89,6 +89,9 @@ Validate a change before opening a pull request:
 gh skill publish --dry-run
 ```
 
+[`CONTRIBUTING.md`](./CONTRIBUTING.md) says the rest: how a skill is tried out before it is
+proposed, and what is asked before a change.
+
 ## Noteworthy and contributors
 
 VanillaBP was developed by [Phactum](https://www.phactum.at) with the intention of giving back
