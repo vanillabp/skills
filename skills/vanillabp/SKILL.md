@@ -107,6 +107,9 @@ already while it builds, and its messages name the remedy. Never work around suc
 It describes a real inconsistency, and the message is meant to be followed step by step until
 the configuration is complete.
 
+A message you cannot place is in [references/symptoms.md](references/symptoms.md), which maps
+what you see onto the section which explains it.
+
 Steps 6 and 7 are the only reason to trust the result. Do not skip them.
 
 ## Operating the result
@@ -128,6 +131,13 @@ Blueprints deliberately cover only what the SPI and the platform integrations pr
 task cannot be solved without BPMS specifics, say so instead of inventing configuration. The
 map of where each topic is documented is in
 [references/documentation-map.md](references/documentation-map.md).
+
+## When something goes wrong
+
+Start at [references/symptoms.md](references/symptoms.md). It lists the messages and
+exceptions which come up around VanillaBP, says what each one is and links the section which
+answers it. Search it with the words you see before you search the wikis, and add a row
+whenever you find an answer that was not there.
 
 An application being upgraded from VanillaBP 1 is a different job with its own skill,
 `vanillabp-upgrade-v1-to-v2`.
