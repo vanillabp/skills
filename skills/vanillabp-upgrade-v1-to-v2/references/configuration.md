@@ -143,9 +143,34 @@ wikis.
 | `…adapters.<bpms>.tenant-id` | `vanillabp.adapters.<id>.tenant-id` | the tenant belongs to the BPMS instance now rather than to the workflow module, and without it the module id is used exactly as in version 1 |
 | `…adapters.<bpms>.use-tenants: false` | `vanillabp.adapters.<id>.name-clash-avoidance: none` | one concept replaces it, see below |
 | `…adapters.camunda8.task-id-as-hex-string` | removed | not a property to move but DATA to migrate: version 2 reads task ids decimally and no setting changes that, so the ids the application stored while this was on have to be converted. The adapter names the setting where one turns up |
-| `vanillabp.allow-connectors` | not yet in version 2 | tell the VanillaBP team if you rely on it |
-| `…adapters.camunda8.retry-backoff` | `vanillabp.adapters.<id>.retry-backoff` | the same thing it was, the backoff of a failed job, resolvable per workflow module, workflow and task as before. It has a DEFAULT now (`PT10S`, where version 1 sent none unless configured). The `retryBackoff` task header of the model is read as before, and where a task carries both, the task-level property wins |
+| `vanillabp.allow-connectors` | `vanillabp.adapters.<id>.allow-connectors` | the key moved under the adapter, because connectors are a Camunda 8 concept. The three levels are the ones you had, adapter, workflow module and workflow, and the default is still `false`. The most specific configured value now wins in both directions, where version 1's booleans could only switch the rule on. A user task built from an element template stays wired too, so it needs a `@WorkflowTask` method where version 1 passed it over, and every boot of a module which allows connectors warns about what it handed over |
+| `…adapters.camunda8.retry-backoff` | `vanillabp.adapters.<id>.retry-backoff` | the same thing it was, the backoff of a failed job, resolvable per workflow module, workflow and task as before. It has a DEFAULT now (`PT10S`, where version 1 sent none unless configured). The `retryBackoff` task header of the model is read as before, and where a task carries both, the TASK-level property wins. Every level above the task loses to the header, so a value you move up into adapter or module configuration during the upgrade is overruled by a header you meant to retire. A header which is no ISO-8601 duration warns once per element and leaves the configured value in force |
 | `vanillabp.resilience.*` | removed | never consumed, and retry settings return per adapter with their first consumer, which is the row above |
+
+## Keys version 1 did not have and an upgrade may still need
+
+Three settings have no version 1 name, so the table above does not carry them, and each answers a
+question an upgraded application can run into.
+
+`vanillabp.workflow-modules.<m>.workflows.<w>.allow-full-sync-with-bpms` decides whether a workflow
+may hand its whole aggregate to the BPMS. A version 1 application annotated nothing, so this is the
+line it meets at its first start, unless it says what its models need instead. The permission
+belongs to the single workflow and is not inherited.
+
+`vanillabp.adapters.<id>.serialization-format` is the Camunda 7 key for a value the engine has no
+variable type of its own for: a nested value, and a `BigDecimal`, `BigInteger` or `Float`. Such a
+value becomes an object variable, stored in the format the engine was told to use, and the format
+needs a Camunda dataformat plugin on the classpath. Name the plugin under
+`vanillabp.adapters.<id>.engine-plugins`, or contribute a `ProcessEnginePlugin` bean where it needs
+more than a constructor without arguments. Without a format the engine falls back to Java
+serialization, which is a blob in Cockpit and your classes in the engine's database. The format is
+resolvable per workflow, workflow module and adapter.
+[What becomes of a shared value](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki/What-becomes-of-a-shared-value)
+has the formats, the plugin and what each format cannot carry.
+
+`vanillabp.adapters.<id>.startup-wait` is how long the Camunda 8 adapter waits for its cluster to
+answer while the application boots. The default is `PT10M`, and `PT0S` is what version 1 did. It
+sits at the adapter and nowhere else, because a cluster belongs to no workflow module.
 
 ## Keeping workflow modules apart: choose a mode
 
