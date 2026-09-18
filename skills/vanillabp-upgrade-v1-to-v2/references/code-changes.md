@@ -71,6 +71,15 @@ public class RideService { ... }
 public class RideService { ... }
 ```
 
+The `@Service` in both examples is doing work now. Version 2 no longer scans the classpath for
+`@WorkflowService`: on Spring Boot it walks the bean definitions and keeps the classes carrying the
+annotation, and Quarkus wants the same at build time. So a workflow service which is no bean
+loses its `ProcessService`, and a `@Bean` method has to declare the workflow service class as its
+return type, because what is read is the type of the definition and never the instance. Spring Boot
+does not fail over it: the application starts and the deployment warns about the BPMN processes
+nothing claims, naming the class and the ways to make it a bean. Quarkus fails the build instead.
+Check every class the survey found while you are in these files anyway.
+
 Keeping the version 1 annotation is valid too. The startup check accepts a rollback rule that
 excludes `TaskException`, so the version 1 line boots and behaves as before. What fails the boot
 is an annotation joining VanillaBP's transaction without such a rule, because a `TaskException`

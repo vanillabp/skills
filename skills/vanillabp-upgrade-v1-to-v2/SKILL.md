@@ -1,6 +1,6 @@
 ---
 name: vanillabp-upgrade-v1-to-v2
-description: Upgrade an application from VanillaBP 1 to VanillaBP 2. Surveys a version 1 project for everything that has to change, then applies it. Covers Java 21 and Spring Boot 4 or Quarkus 3.37, the renamed adapter artifacts, the META-INF/workflow-module descriptor, default-adapter becoming prioritized-adapters, adapter settings moving to vanillabp.adapters, the removed ProcessService overloads, @BpmnProcess.primary, and the transaction annotations on workflow services. Use whenever a project depends on VanillaBP 1.x, whenever someone asks about upgrading or migrating to VanillaBP 2, or whenever a build against VanillaBP 2 fails on those symbols.
+description: Upgrade an application from VanillaBP 1 to VanillaBP 2. Surveys a version 1 project for everything that has to change, then applies it. Covers Java 21 and Spring Boot 4 or Quarkus 3.37, the renamed adapter artifacts, the META-INF/workflow-module descriptor, default-adapter becoming prioritized-adapters, adapter settings moving to vanillabp.adapters, the removed ProcessService overloads, @BpmnProcess.primary, and the transaction annotations on workflow services. Also covers the first start refusing an aggregate which shares everything, workflow services being found because they are beans, the version attribute of @BpmnProcess taking effect, decision tables deployed with their workflow module, the Camunda 8 wait for its cluster, and the Camunda 7 serialization format a nested value needs. Use whenever a project depends on VanillaBP 1.x, whenever someone asks about upgrading or migrating to VanillaBP 2, or whenever a build against VanillaBP 2 fails on those symbols.
 license: Apache-2.0
 metadata:
   author: vanillabp
@@ -32,6 +32,8 @@ what each finding means. Produce a written inventory before touching a file:
 
 - the platform and its version, the Java version, the VanillaBP version and the adapter in use,
 - every workflow module and how its id is derived today,
+- every `.dmn` file below a module's resources and how it is deployed today,
+- every `@WorkflowService` class and whether it is a bean,
 - every `vanillabp.*` and BPMS-specific configuration key in every profile and test resource,
 - every occurrence of the removed API,
 - every `@TaskParam` and its declared type, against the value the model maps into it,
@@ -69,6 +71,13 @@ of that module from their configuration.
 Then move the configuration key by key, following
 [references/configuration.md](references/configuration.md). Start the application afterwards and
 follow the startup messages, which name every missing key.
+
+One of those messages ends the start rather than guiding you through it, and a version 1
+application is the case it is written for. An aggregate which holds nothing back shares every
+attribute it reaches, so version 2 refuses such a workflow until the aggregate says what the models
+need or the workflow allows the full sync. Decide that with the user, because it is about data
+leaving the application, and
+[references/behavior-changes.md](references/behavior-changes.md) has both ways out.
 
 ### Step 4: delete the transaction annotations
 
@@ -110,9 +119,13 @@ naming both ways out, so it cannot be missed.
 
 **Camunda 7 expressions.** Version 1 answered every BPMN expression by reading the aggregate.
 Version 2 writes the shared values as process variables and lets the engine resolve them, and
-keeps the live read only as a fallback for workflows that were already running. Version 2.1
-removes that fallback. While the application starts, the Camunda 7 adapter lists every
-expression needing attention, and that list is the real migration backlog.
+keeps the live read only as a fallback for workflows that were already running. The fallback
+answers a top-level name and nothing else, so `${order.customer.name}` is not covered by it.
+While the application starts, the Camunda 7 adapter names the expressions whose value the engine
+does not hold, and while it runs it reports every name it answered from the aggregate and counts
+the workflows which still depend on one. That count is the thing to watch: it falls on its own as
+those workflows reach their next sync point, and the fallback is meant to go away once it carries
+nobody. Ask the VanillaBP team if you need a date for that.
 
 ## Source
 
