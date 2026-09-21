@@ -61,6 +61,13 @@ the skill is the copy which goes stale.
 A new skill is the second question. Its name is what installations and the registry point at, and
 its description decides which tasks reach it, so ask before you add one rather than after.
 
+A change which adds a message, a startup check or a new failure adds a row to the symptom list of
+the product it belongs to. Those lists are `skills/vanillabp/references/symptoms.md` for VanillaBP
+itself and `skills/vanillabp/references/business-cockpit-symptoms.md` for the Business Cockpit. A
+row says what the developer sees, what it is, and which section answers it, so write the wiki
+section first and link it. Open the target and read it before you link it. A link to a page which
+does not explain the message is worse than no link.
+
 ## Opening a pull request
 
 Work on a branch of your own and keep one subject per pull request. The description says what moved

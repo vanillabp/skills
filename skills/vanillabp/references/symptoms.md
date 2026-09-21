@@ -12,7 +12,12 @@ The last group holds problems VanillaBP does not cause. They come up so often in
 neighbourhood that leaving them out would send people to Stack Overflow for an answer that
 exists here.
 
-Keep this list growing. A change which introduces a new message or a new startup check adds
+The VanillaBP Business Cockpit has a list of its own,
+[business-cockpit-symptoms.md](business-cockpit-symptoms.md), built the same way. Search it
+too where the application reports into a cockpit, and where the message names a cockpit
+adapter or the cockpit server.
+
+Keep both lists growing. A change which introduces a new message or a new startup check adds
 its row here, next to the section it wrote.
 
 ## While the application starts

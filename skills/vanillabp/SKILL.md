@@ -139,5 +139,10 @@ exceptions which come up around VanillaBP, says what each one is and links the s
 answers it. Search it with the words you see before you search the wikis, and add a row
 whenever you find an answer that was not there.
 
+Where the application reports into a VanillaBP Business Cockpit, search
+[references/business-cockpit-symptoms.md](references/business-cockpit-symptoms.md) as well. It
+is the same kind of list, written for the cockpit server and for the adapters which report
+into it.
+
 An application being upgraded from VanillaBP 1 is a different job with its own skill,
 `vanillabp-upgrade-v1-to-v2`.
