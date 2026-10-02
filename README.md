@@ -14,6 +14,7 @@ supporting the standard.
 |---|---|
 | [`vanillabp`](skills/vanillabp) | Builds a new application from a BPMN model, or grafts a BPMN scenario onto an existing one, by picking and composing the matching [blueprints](https://github.com/vanillabp-blueprints) |
 | [`vanillabp-upgrade-v1-to-v2`](skills/vanillabp-upgrade-v1-to-v2) | Surveys a VanillaBP 1 project for everything the upgrade to version 2 touches, then applies it |
+| [`business-cockpit`](skills/business-cockpit) | Maps a question about the [Business Cockpit](https://github.com/vanillabp/business-cockpit) onto the page which answers it: reporting from a workflow module, serving a user task form, running a cockpit of your own, and building a cockpit user interface in any framework |
 | [`business-cockpit-upgrade-to-blocking`](skills/business-cockpit-upgrade-to-blocking) | Surveys a customized [Business Cockpit](https://github.com/vanillabp/business-cockpit) application for everything the move from reactive WebFlux to blocking Spring MVC on virtual threads touches, then applies it |
 
 The skills link the reference documentation instead of copying it, so an agent using them
@@ -58,7 +59,8 @@ Copy the directories below `skills/` into the place your agent reads. The usual 
 
 The skills load themselves when a task matches their description, so in most cases there is
 nothing to invoke. Where an agent supports naming a skill directly, `/vanillabp`,
-`/vanillabp-upgrade-v1-to-v2` and `/business-cockpit-upgrade-to-blocking` do that.
+`/vanillabp-upgrade-v1-to-v2`, `/business-cockpit` and `/business-cockpit-upgrade-to-blocking` do
+that.
 
 Give the agent the BPMN model when the task is about a process. The skills refuse to invent one,
 and the general skill selects the blueprints it copies from by the element types the model
@@ -72,7 +74,7 @@ actually contains.
 | [Platform wiki](https://github.com/vanillabp/adapter-platform-integration/wiki) | concepts, workflow modules, platform integration, configuration |
 | [spi-for-java](https://github.com/vanillabp/spi-for-java) | the annotations and interfaces applications use |
 | the wiki of each [BPMS adapter](https://github.com/vanillabp/adapter-platform-integration/wiki/BPMS-adapters) | everything specific to one engine |
-| [business-cockpit](https://github.com/vanillabp/business-cockpit) | the cockpit container, its extension points and how a customized cockpit is built |
+| [business-cockpit](https://github.com/vanillabp/business-cockpit) | the cockpit container, its extension points, how a customized cockpit is built, and the description a cockpit user interface is built from |
 
 These skills are for people building applications with VanillaBP. Skills for contributing to
 VanillaBP itself live in
