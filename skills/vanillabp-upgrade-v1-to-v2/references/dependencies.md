@@ -76,7 +76,7 @@ them and a call your cluster cannot serve fails with a message naming your line.
 another line means upgrading the cluster, so it is one decision and not two.
 
 Where the project uses Renovate, extend the preset the adapter ships
-(`github>vanillabp/camunda8-adapter//renovate/camunda8-lines.json`). It reads the suffix as a
+(`github>camunda-community-hub/vanillabp-camunda8-adapter//renovate/camunda8-lines.json`). It reads the suffix as a
 compatibility value and never changes it on its own, so no automatic update moves the
 application to a cluster minor it does not run.
 
