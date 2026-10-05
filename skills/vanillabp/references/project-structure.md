@@ -69,13 +69,13 @@ public void submitRiskAssessment(final String id, final boolean acceptable) {
 
 // Workflow.java - what it means for the process
 public void riskAssessmentSubmitted(final Aggregate loanApproval) {
-  processService.correlateMessage(loanApproval, "RiskAssessed");
+  bpms.correlateMessage(loanApproval, "RiskAssessed");
 }
 
 // WorkflowTaskHandler.java - what the process wants from the application
 @WorkflowTask
-public void assessRisk(final Aggregate loanApproval, @TaskId final String taskId) {
-  service.riskAssessmentRequested(loanApproval, taskId);
+public void assessRisk(final Aggregate loanRequest, @TaskId final String taskId) {
+  loanApproval.riskAssessmentRequested(loanRequest, taskId);
 }
 ```
 
@@ -83,6 +83,12 @@ Name the methods of `Workflow` after the business event (`riskAssessmentSubmitte
 after the BPMN element (`correlateRiskAssessedMessage`). The model may be remodelled, a message
 may become a timer and a task a call activity, without the business code noticing, and that is
 the whole point.
+
+Name an injected bean after the role it plays in the class, not after its type. The `Service`
+of a loan approval is `loanApproval`, `ProcessService` is `bpms`, `Workflow` is `workflow`, and
+a repository is named after what it stores, `loanApprovals`. A call then reads like a sentence
+about the business case. Where a parameter would hide the field, name it from the domain, as
+`loanRequest` above.
 
 Do not merge the two classes. Putting both directions into one makes it depend on `Service`
 while `Service` depends on it, a circular bean reference which Spring Boot rejects at startup
