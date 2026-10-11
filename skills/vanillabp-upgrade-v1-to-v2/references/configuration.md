@@ -3,8 +3,8 @@
 ## `default-adapter` becomes `prioritized-adapters`
 
 Version 1 named the adapter of a module. Version 2 names an order of adapters, because several
-BPMS may serve one application, which is what makes BPMS migration a configuration change. The
-key exists at the same three levels as before.
+BPMS (business process management systems) may serve one application. That makes BPMS migration
+a change of configuration. The key exists at the same three levels as before.
 
 ```yaml
 # before
@@ -31,15 +31,15 @@ vanillabp:
             - camunda7
 ```
 
-The first entry starts new workflows and the others are asked for workflows started earlier. The
-most specific non-empty value wins as a whole, so a workflow's list replaces the module's rather
-than merging with it.
+The first entry starts new workflows, and the others are asked for workflows started earlier.
+The most specific value which is not empty wins as a whole. So a workflow's list replaces the
+module's list. The two are not merged.
 
 ## Workflow modules are declared by a descriptor file
 
-Version 1 knew three ways to name a workflow module: `spring.application.name` for
-single-module applications, the name of the module's configuration file, or a static bean method
-declaring the id together with the module's properties class.
+Version 1 knew three ways to name a workflow module: `spring.application.name` for applications
+with one module, the name of the module's configuration file, or a static bean method which
+declares the id together with the module's properties class.
 
 ```java
 // version 1
@@ -53,30 +53,30 @@ public static WorkflowModuleProperties ModuleProperties() {
 }
 ```
 
-Version 2 wants the id stated explicitly and in one place, so that a module travels with its own
-artifact and is found the same way on both platforms. Add a text file whose content is the module
-id:
+Version 2 wants the id stated explicitly, and in one place. So a module travels with its own
+artifact, and is found the same way on both platforms. Add a text file whose content is the
+module id:
 
 ```
 src/main/resources/META-INF/workflow-module      # content: loan-approval
 ```
 
 Delete the bean method afterwards. `WorkflowModuleProperties` no longer exists, so a project
-keeping it does not compile. The properties class it named stays as it is, because binding a
-module's own configuration has not changed.
+which keeps it does not compile. The properties class it named stays as it is, because binding
+a module's own configuration has not changed.
 
-One file per workflow module, placed in the artifact implementing that use case. An application
-without any descriptor is treated as one single global module, so the file is what turns a use
-case into a module of its own.
+One file per workflow module, placed in the artifact which implements that use case. An
+application without any descriptor is treated as one single global module. So the file turns a
+use case into a module of its own.
 
 Keep the ids you had.
 
 ## Adapter settings move to `vanillabp.adapters.<id>.*`
 
-In version 1 an adapter's settings lived per workflow module and its connection was configured
-by the BPMS' own Spring integration. In version 2 an adapter id names one BPMS instance and
-everything that instance needs lives in its own section, owned by VanillaBP, with no
-BPMS-specific Spring configuration involved.
+In version 1 an adapter's settings lived per workflow module, and the BPMS' own Spring
+integration configured its connection. In version 2 an adapter id names one BPMS instance.
+Everything that instance needs lives in its own section, which VanillaBP owns. No Spring
+configuration of the BPMS takes part.
 
 ```yaml
 # before (Camunda 8, connection via the Camunda Spring SDK)
@@ -104,7 +104,7 @@ vanillabp:
       job-timeout: PT5M       # adapter-wide default, overridable per module, workflow and task
 ```
 
-An id that is not an adapter type needs `vanillabp.adapters.<id>.type`, which is how two
+An id which is not an adapter type needs `vanillabp.adapters.<id>.type`. That is how two
 instances of the same BPMS are told apart:
 
 ```yaml
@@ -122,10 +122,11 @@ vanillabp:
       rest-address: http://camunda.internal:8080
 ```
 
-The exact keys are the adapter's business. See the
+The adapter decides the exact keys. See the
 [Camunda 7](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki/Configuration),
 [Camunda 8](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki/Configuration)
-and [Process-Engine-API](https://github.com/vanillabp/process-engine-api-adapter/wiki/Configuration)
+and
+[Process-Engine-API](https://github.com/vanillabp/process-engine-api-adapter/wiki/Configuration)
 wikis.
 
 ## Key by key
@@ -149,33 +150,33 @@ wikis.
 
 ## Keys version 1 did not have and an upgrade may still need
 
-Three settings have no version 1 name, so the table above does not carry them, and each answers a
+Three settings have no version 1 name, so the table above does not have them. Each answers a
 question an upgraded application can run into.
 
-`vanillabp.workflow-modules.<m>.workflows.<w>.allow-full-sync-with-bpms` decides whether a workflow
-may hand its whole aggregate to the BPMS. A version 1 application annotated nothing, so this is the
-line it meets at its first start, unless it says what its models need instead. The permission
-belongs to the single workflow and is not inherited.
+`vanillabp.workflow-modules.<m>.workflows.<w>.allow-full-sync-with-bpms` decides whether a
+workflow may hand its whole aggregate to the BPMS. A version 1 application annotated nothing.
+So it meets this line at its first start, unless it says what its models need instead. The
+permission belongs to the single workflow and is not inherited.
 
-`vanillabp.adapters.<id>.serialization-format` is the Camunda 7 key for a value the engine has no
-variable type of its own for: a nested value, and a `BigDecimal`, `BigInteger` or `Float`. Such a
-value becomes an object variable, stored in the format the engine was told to use, and the format
-needs a Camunda dataformat plugin on the classpath. Name the plugin under
-`vanillabp.adapters.<id>.engine-plugins`, or contribute a `ProcessEnginePlugin` bean where it needs
-more than a constructor without arguments. Without a format the engine falls back to Java
-serialization, which is a blob in Cockpit and your classes in the engine's database. The format is
-resolvable per workflow, workflow module and adapter.
+`vanillabp.adapters.<id>.serialization-format` is the Camunda 7 key for a value which the
+engine has no variable type of its own for: a nested value, and a `BigDecimal`, `BigInteger` or
+`Float`. Such a value becomes an object variable, stored in the format the engine was told to
+use. The format needs a Camunda dataformat plugin on the classpath. Name the plugin under
+`vanillabp.adapters.<id>.engine-plugins`. Or contribute a `ProcessEnginePlugin` bean, where it
+needs more than a constructor without arguments. Without a format the engine falls back to Java
+serialization. That means a blob in Cockpit, and your classes in the engine's database. You can
+set the format per workflow, workflow module and adapter.
 [What becomes of a shared value](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki/What-becomes-of-a-shared-value)
 has the formats, the plugin and what each format cannot carry.
 
-`vanillabp.adapters.<id>.startup-wait` is how long the Camunda 8 adapter waits for its cluster to
-answer while the application boots. The default is `PT10M`, and `PT0S` is what version 1 did. It
-sits at the adapter and nowhere else, because a cluster belongs to no workflow module.
+`vanillabp.adapters.<id>.startup-wait` is how long the Camunda 8 adapter waits for its cluster
+to answer while the application boots. The default is `PT10M`, and `PT0S` is what version 1
+did. It sits at the adapter and nowhere else, because a cluster belongs to no workflow module.
 
 ## Keeping workflow modules apart: choose a mode
 
-Version 1 isolated a workflow module by a BPMS tenant and let you switch that off per module.
-Version 2 makes it one explicit setting with three values:
+Version 1 kept a workflow module apart by a BPMS tenant, and let you switch that off per
+module. Version 2 makes it one explicit setting with three values:
 
 ```yaml
 vanillabp:
@@ -186,38 +187,38 @@ vanillabp:
       # name-clash-avoidance: none       # nothing is scoped, the old 'use-tenants: false'
 ```
 
-Both Camunda adapters default to `by-adapter`, which is version 1's behavior, so an application
+Both Camunda adapters default to `by-adapter`, which is version 1's behavior. So an application
 which ran version 1 with the defaults keeps its tenants without configuring anything. Where
-`none` applies, the adapter logs a WARN per workflow module naming the alternatives, and
-`accept-unscoped-identifiers: true` puts that decision on record.
+`none` applies, the adapter logs a WARN per workflow module, which names the alternatives.
+`accept-unscoped-identifiers: true` records that decision.
 
-Two settings that used to fit together now contradict each other and the boot says so: a
-`tenant-id` without any level using `by-adapter` fails, because the deployment would ignore the
-configured name. Where `by-adapter` does apply, Camunda 8 also asks the cluster whether
-the tenant can be used at all before deploying.
+Two settings which used to fit together now contradict each other, and the boot says so. A
+`tenant-id` without any level which uses `by-adapter` fails, because the deployment would
+ignore the configured name. Where `by-adapter` does apply, Camunda 8 also asks the cluster
+whether the tenant can be used at all, before it deploys.
 
 Three notes for upgraders:
 
 - Camunda 7: nothing to do where version 1 ran with its defaults. It deployed every workflow
-  module into a tenant named after it, and `by-adapter` deploys into the same one, so the
+  module into a tenant named after it. `by-adapter` deploys into the same one. So the
   identifiers the engine answers by stay what they were.
 - Camunda 7 and Camunda 8 with `use-tenants: false`: this is the case which needs a line. Those
   workflows carry no tenant, the default deploys into one, and nothing would be found any more.
   Set `name-clash-avoidance: none`. On Camunda 7 the adapter counts the workflows the
-  configuration will not reach and warns at every start, so a missed case is noticed rather than
-  silent - but it is a warning, because leaving old workflows behind is also what the last step of
-  a BPMS migration looks like.
-- Camunda 8 without multi-tenancy: a cluster started from the stock image rejects a tenant id, so
-  the boot ends with a message naming both ways out, `use-prefix` to keep the modules apart
-  without a tenant and `none` where the identifiers are unique anyway. An application which ran
-  an early VanillaBP 2 version, whose adapter put everything into the default tenant, belongs to
-  the `none` case as well.
+  configuration will not reach, and warns at every start. So a missed case is noticed, not
+  silent. But it is only a warning, because the last step of a BPMS migration also leaves old
+  workflows behind.
+- Camunda 8 without multi-tenancy: a cluster started from the standard image rejects a tenant
+  id. So the boot ends with a message which names both ways out: `use-prefix` to keep the
+  modules apart without a tenant, and `none` where the identifiers are unique anyway. An
+  application which ran an early VanillaBP 2 version, whose adapter put everything into the
+  default tenant, also belongs to the `none` case.
 - Process-Engine-API: that BPMS has no tenants, so `by-adapter` cannot work there. The adapter
-  fails the boot until you choose `use-prefix` or `none`. There was never a version 1 release of
-  it, so this is not an upgrade question.
+  fails the boot until you choose `use-prefix` or `none`. It never had a version 1 release, so
+  this is not an upgrade question.
 
-Switching to `use-prefix` changes the identifiers the BPMS sees, so it is a migration rather
-than a property change. Read
+Switching to `use-prefix` changes the identifiers the BPMS sees. So it is a migration, not a
+change of a property. Read
 [how name clashes are avoided](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-modules#how-name-clashes-are-avoided)
 first.
 
@@ -225,20 +226,21 @@ first.
 
 An application with one adapter dependency and one workflow module needs no `vanillabp.*`
 property at all, because the classpath is the configuration. The adapter section, the module
-section and `resources-location` are all derived, and only what the BPMS itself needs, such as
-a cluster address, remains. Everything you configured explicitly keeps working.
+section and `resources-location` are all derived. Only what the BPMS itself needs remains, such
+as a cluster address. Everything you configured explicitly keeps working.
 
 Where the application comes from a Camunda 8 adapter of 1.6.3 or earlier, two tables are left
 behind as well: `CAMUNDA8_DEPLOYMENTS` and `CAMUNDA8_RESOURCES`, or two MongoDB collections of
-the same names. That adapter kept its own record of what it had deployed so it could re-read the
-models of older process versions; 1.7.0 dropped it and version 2 asks the cluster instead. After
-the upgrade nothing reads them and they hold every BPMN the application ever deployed, so point
-the user at them. Dropping them is the user's decision, not something to do for them.
+the same names. That adapter kept its own record of what it had deployed, so it could read the
+models of older process versions again. 1.7.0 dropped it, and version 2 asks the cluster
+instead. After the upgrade nothing reads them, and they hold every BPMN the application ever
+deployed. So point the user at them. The user decides whether to drop them. Do not do it for
+them.
 
 ## A new section for remote BPMS: the outbox
 
-Adapters of remote BPMS (Camunda 8 and Process-Engine-API) start workflows in two phases
+Adapters of remote BPMS (Camunda 8 and Process-Engine-API) start workflows in two phases,
 through a transaction outbox. It works out of the box, the store is created automatically, and
-it is tunable via `vanillabp.outbox.*`. Read
+you can tune it with `vanillabp.outbox.*`. Read
 [what it guarantees](https://github.com/vanillabp/adapter-platform-integration/wiki/Spring-Boot-integration#what-the-outbox-guarantees)
-before going to production, because monitoring blocked entries is an operations duty.
+before you go to production, because operations has to watch for blocked entries.

@@ -1,7 +1,7 @@
 # Surveying a customized business cockpit
 
-Run these from the project root before changing anything. Each row names what to look for and
-what a hit means. Adapt the tool to what is available; the patterns matter, not the command.
+Run these from the project root before you change anything. Each row names what to look for and
+what a hit means. Use whatever tool is there. The patterns matter, not the command.
 
 ## Runtime and dependencies
 
@@ -66,8 +66,8 @@ what a hit means. Adapt the tool to what is available; the patterns matter, not 
 | Read timeouts | `grep -rn "read-timeout\|readTimeout" --include="*.yaml" --include="*.yml" --include="*.properties" .` | `spring.http.clients.read-timeout` cuts proxied event streams, see [configuration.md](configuration.md) |
 | Netty and server settings | `grep -rn "server.netty\|reactor.netty" --include="*.yaml" --include="*.yml" --include="*.properties" .` | Tomcat serves the application now, so these do nothing |
 
-Search profile files and test resources too. Configuration is where an upgrade is most often left
-half done, and an unbound key produces no message.
+Search profile files and test resources too. An upgrade is most often left half done in the
+configuration, and an unbound key produces no message.
 
 ## Tests
 
@@ -78,19 +78,20 @@ half done, and an unbound key produces no message.
 
 ## What no grep will find
 
-Say these out loud in the report, because they need a person to answer:
+Say these out loud in the report, because a person has to answer them:
 
-- Work handed to an executor, a `@Async` method or a scheduled task which reads the current user.
-  It compiled and worked while Reactor propagated the context, and it returns no user now.
+- Work handed to an executor, an `@Async` method or a scheduled task, which reads the current
+  user. It compiled and worked while Reactor passed the context on, and it returns no user now.
 - A `subscribe()` whose exceptions nobody ever saw. Once it is a plain method call, they reach
-  the caller, which is an improvement that shows up as a new failure.
-- A `synchronized` block around a blocking call. On virtual threads that pins the carrier thread
-  for the duration of the call.
+  the caller. That is an improvement, and it shows up as a new failure.
+- A `synchronized` block around a blocking call. On virtual threads that pins the carrier
+  thread for as long as the call takes.
 - Any read timeout on the way to a workflow module, whether from
-  `spring.http.clients.read-timeout` or from a reverse proxy in front of the cockpit. The container
-  pings every 27 seconds, so a shorter timeout cuts the update stream and no build fails.
-- What the Kafka consumer should do with a record whose handling now throws instead of being
+  `spring.http.clients.read-timeout` or from a reverse proxy in front of the cockpit. The
+  container pings every 27 seconds. So a shorter timeout cuts the update stream, and no build
+  fails.
+- What the Kafka consumer should do with a record whose handling now throws, instead of being
   swallowed. Retries and a dead letter topic are a decision, see
   [behavior-changes.md](behavior-changes.md).
-- Anything reading the empty HTTP 200 from `/gui/api/v1/app/current-user` as "not logged in". It
-  answers 401 now.
+- Anything which reads the empty HTTP 200 from `/gui/api/v1/app/current-user` as "not logged
+  in". It answers 401 now.

@@ -1,29 +1,29 @@
 # From a symptom to the answer in the Business Cockpit
 
-A developer searches with what they see, not with the name of the chapter that holds the
-answer. This page does for the VanillaBP Business Cockpit what [symptoms.md](symptoms.md)
-does for VanillaBP itself: it maps the messages and exceptions which come up around the
-cockpit onto the place which explains them.
+A developer searches with what they see, not with the name of the chapter which holds the
+answer. This page does for the VanillaBP Business Cockpit what [symptoms.md](symptoms.md) does
+for VanillaBP itself. It leads from the messages and exceptions which come up around the
+cockpit to the place which explains them.
 
 Read the *What you see* column like a search. Messages are shortened to the part worth
-searching for, so match on the words rather than on the whole line. Where several rows fit,
-read them in order: the first one is the common case.
+searching for. So match on the words, not on the whole line. Where several rows fit, read them
+in order. The first one is the common case.
 
 The cockpit has two sides, and it helps to know which one a message comes from. A workflow
-module reports into the cockpit, and what it says comes from the cockpit adapter of your BPMS.
-The cockpit server stores those reports and serves the user interface. A message of a workflow
-module names its BPMS and its adapter id, as in `Camunda8[default]: …`.
+module reports into the cockpit, and what it says comes from the cockpit adapter of your BPMS
+(business process management system). The cockpit server stores those reports and serves the
+user interface. A message of a workflow module names its BPMS and its adapter id, as in
+`Camunda8[default]: …`.
 
 Some rows are about something you do not see. A task which never turns up in a list leaves no
-error behind, so the row names the DEBUG line which says why it was dropped. Set the logger
-`io.vanillabp.cockpit` to `DEBUG` before you go looking.
+error behind. So the row names the DEBUG line which says why it was dropped. Set the logger
+`io.vanillabp.cockpit` to `DEBUG` before you start looking.
 
-The last group holds problems the cockpit does not cause. They come up so often in its
-neighbourhood that leaving them out would send people to Stack Overflow for an answer that
-exists here.
+The last group holds problems which the cockpit does not cause. They come up so often around it
+that, without them, people would look on Stack Overflow for an answer which exists here.
 
-Keep this list growing. A change which introduces a new message or a new startup check adds
-its row here, next to the section it wrote.
+Keep this list growing. A change which adds a new message or a new startup check adds its row
+here, next to the section it wrote.
 
 ## While a workflow module starts
 
