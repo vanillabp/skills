@@ -1,24 +1,23 @@
 # From a symptom to the answer
 
-A developer searches with what they see, not with the name of the chapter that holds the
-answer. This page maps the messages and exceptions which come up around VanillaBP onto the
+A developer searches with what they see, not with the name of the chapter which holds the
+answer. This page leads from the messages and exceptions which come up around VanillaBP to the
 place which explains them.
 
 Read the *What you see* column like a search. Messages are shortened to the part worth
-searching for, so match on the words rather than on the whole line. Where several rows fit,
-read them in order: the first one is the common case.
+searching for. So match on the words, not on the whole line. Where several rows fit, read them
+in order. The first one is the common case.
 
-The last group holds problems VanillaBP does not cause. They come up so often in its
-neighbourhood that leaving them out would send people to Stack Overflow for an answer that
-exists here.
+The last group holds problems which VanillaBP does not cause. They come up so often around it
+that, without them, people would look on Stack Overflow for an answer which exists here.
 
 The VanillaBP Business Cockpit has a list of its own,
-[business-cockpit-symptoms.md](business-cockpit-symptoms.md), built the same way. Search it
-too where the application reports into a cockpit, and where the message names a cockpit
-adapter or the cockpit server.
+[business-cockpit-symptoms.md](business-cockpit-symptoms.md), built the same way. Search it too
+where the application reports into a cockpit, and where the message names a cockpit adapter or
+the cockpit server.
 
-Keep both lists growing. A change which introduces a new message or a new startup check adds
-its row here, next to the section it wrote.
+Keep both lists growing. A change which adds a new message or a new startup check adds its row
+here, next to the section it wrote.
 
 ## While the application starts
 

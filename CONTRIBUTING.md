@@ -2,18 +2,19 @@
 
 This repository holds the agent skills for building applications with
 [VanillaBP](https://www.vanillabp.io). They follow the
-[Agent Skills specification](https://agentskills.io/specification), so one skill is a directory
-below `skills/` with a `SKILL.md` and the reference pages it links. The skills are for people
-building applications. Skills for working on VanillaBP itself live in
+[Agent Skills specification](https://agentskills.io/specification). So one skill is a directory
+below `skills/`, with a `SKILL.md` and the reference pages it links. The skills are for people
+who build applications. Skills for working on VanillaBP itself live in
 [development-workspace](https://github.com/vanillabp/development-workspace).
 
-There is no Java here and no `AGENTS.md`. [`README.md`](./README.md) says what each skill does, how
-it is installed and where its knowledge comes from, and it is the first thing to read.
+There is no Java here. [`README.md`](./README.md) says what each skill does, how it is
+installed and where its knowledge comes from. Read it first. [`AGENTS.md`](./AGENTS.md) holds
+the rule for how we write, in the form an agent reads.
 
-A skill links the documentation instead of copying it, which is the rule this repository stands on.
-An agent reading a skill should end up in the current wiki, not in a snapshot of it from the day the
-skill was written. Where a skill and the documentation disagree, the documentation is right and the
-skill is the defect.
+A skill links the documentation instead of copying it. This repository stands on that rule. An
+agent which reads a skill should end up in the current wiki, not in a copy of it from the day
+the skill was written. Where a skill and the documentation disagree, the documentation is
+right, and the skill is the defect.
 
 ## From a bug to a pull request
 
@@ -40,9 +41,10 @@ Hub, which asks you to sign its contributor license agreement on your first pull
 
 ## Changing a skill and checking it
 
-A change is a text change: `SKILL.md`, a page below `references/`, or both. The front matter carries
-the name, the description an agent matches a task against, and the license. The description is what
-decides whether a skill is loaded at all, so a change to it is a change to behaviour.
+A change is a text change: `SKILL.md`, a page below `references/`, or both. The front matter
+carries the name, the description an agent matches a task against, and the license. The
+description decides whether a skill is loaded at all. So a change to it is a change to
+behaviour.
 
 Check it before you open a pull request:
 
@@ -50,13 +52,13 @@ Check it before you open a pull request:
 gh skill publish --dry-run
 ```
 
-That needs `gh` 2.90 or later, and it reports what a publish would do without doing it. There is no
-build and no continuous integration in this repository, so this command and your own reading are the
-whole check.
+That needs `gh` 2.90 or later. It reports what a publish would do, without doing it. This
+repository has no build and no continuous integration. So this command and your own reading are
+the whole check.
 
-Then try the skill. Install it into a scratch project the way [`README.md`](./README.md) describes,
-give the agent a task the skill is meant for, and see whether it loads by itself. A skill which only
-works when it is named by hand has a description problem.
+Then try the skill. Install it into a scratch project the way [`README.md`](./README.md)
+describes. Give the agent a task the skill is meant for, and see whether it loads by itself. If
+a skill only works when you name it by hand, its description has a problem.
 
 ## How we write
 
@@ -64,41 +66,42 @@ Most people who read this repository read English as a second language, and so d
 Long sentences, rare words and stacked nouns slow them down. Write so that nobody has to read a
 sentence twice.
 
-Short main sentences, one thought each. One subordinate clause is enough. Active voice. The common
-word instead of the rare one: `use` instead of `leverage`, `about` instead of `regarding`, `so`
-instead of `consequently`. A technical term stays a technical term, but say what it means the first
-time it turns up, and write an abbreviation out once. If a sentence trips you up when you read it
-aloud, rewrite it.
+Short main sentences, one thought each. One subordinate clause is enough. Active voice. The
+common word instead of the rare one: `use` instead of `leverage`, `about` instead of
+`regarding`, `so` instead of `consequently`, `has` instead of `possesses`. A technical term
+stays a technical term, but say what it means the first time it turns up, and write an
+abbreviation out once. If a sentence trips you up when you read it aloud, rewrite it.
 
-An agent reads this text as well as a person, and both of them fall for the same thing: a sentence
-which sounds right and says nothing. Nothing a program reads is renamed for the sake of language,
-the name of a skill included, because installations and the registry point at it.
+An agent reads this text as well as a person, and both fall for the same thing: a sentence
+which sounds right and says nothing. Nothing a program reads is renamed for the sake of
+language, the name of a skill included, because installations and the registry point at it. The
+full rule is in [`AGENTS.md`](./AGENTS.md), under `How we write`.
 
 ## What is asked before a change
 
-A skill describes how VanillaBP works. Where your change says something new about that, the change
-belongs into the repository which documents it, the wiki or the blueprints, and the skill follows
-afterwards. A skill which teaches a rule nothing else states is where the two start to drift, and
-the skill is the copy which goes stale.
+A skill describes how VanillaBP works. If your change says something new about that, the change
+belongs in the repository which documents it, the wiki or the blueprints. The skill follows
+afterwards. If a skill teaches a rule nothing else states, the two start to drift apart there,
+and the skill is the copy which goes out of date.
 
-A new skill is the second question. Its name is what installations and the registry point at, and
-its description decides which tasks reach it, so ask before you add one rather than after.
+A new skill is the second question. Installations and the registry point at its name, and its
+description decides which tasks reach it. So ask before you add one, not after.
 
-A change which adds a message, a startup check or a new failure adds a row to the symptom list of
-the product it belongs to. Those lists are `skills/vanillabp/references/symptoms.md` for VanillaBP
-itself and `skills/vanillabp/references/business-cockpit-symptoms.md` for the Business Cockpit. A
-row says what the developer sees, what it is, and which section answers it, so write the wiki
-section first and link it. Open the target and read it before you link it. A link to a page which
-does not explain the message is worse than no link.
+A change which adds a message, a startup check or a new failure adds a row to the symptom list
+of its product. Those lists are `skills/vanillabp/references/symptoms.md` for VanillaBP itself
+and `skills/vanillabp/references/business-cockpit-symptoms.md` for the Business Cockpit. A row
+says what the developer sees, what it is, and which section answers it. So write the wiki
+section first and link it. Open the target and read it before you link it. A link to a page
+which does not explain the message is worse than no link.
 
 ## Opening a pull request
 
-Work on a branch of your own and keep one subject per pull request. The description says what moved
-and why it had to, and it is worth naming the agent you tried the change with, because that is the
-only evidence there is here.
+Work on a branch of your own, and keep one subject per pull request. The description says what
+changed and why it had to. Name the agent you tried the change with, because that is the only
+evidence there is here.
 
 ## License
 
-VanillaBP is published under the [Apache License, Version 2.0](./LICENSE), and by contributing you
+VanillaBP is published under the [Apache License, Version 2.0](./LICENSE). By contributing you
 agree that your contribution is licensed the same way. [`NOTICE`](./NOTICE) names who holds the
-copyright, and every `SKILL.md` carries the same license in its front matter.
+copyright. Every `SKILL.md` carries the same license in its front matter.

@@ -2,11 +2,11 @@
 
 Every key below is a key of the derived application's own `application.yaml` and its profile
 files. The business cockpit's own properties under `business-cockpit`, the MongoDB connection
-under `spring.data.mongodb` and the BPMS API credentials under `bpms-api` are untouched.
+under `spring.data.mongodb`, and the BPMS API credentials under `bpms-api` stay untouched.
 
 A key which no longer exists is not reported. Spring binds what it recognizes and ignores the
-rest, so a reactive key left behind reads as a setting that has no effect. Grep for the old names
-rather than trusting a successful start.
+rest. So a reactive key left behind is a setting which has no effect. Grep for the old names
+instead of trusting a successful start.
 
 ## Static resources
 
@@ -28,15 +28,15 @@ spring:
       enabled: true
 ```
 
-New, and off in Spring Boot's own defaults. The container ships it in
-`config/application.yaml` inside the `container` artifact, so a derived application does not have
-to declare it. Check the running application rather than assuming, because a profile of the
-application can still set it back to `false`.
+New, and off in Spring Boot's own defaults. The container ships it in `config/application.yaml`
+inside the `container` artifact, so a derived application does not have to declare it. Check
+the running application instead of assuming, because a profile of the application can still set
+it back to `false`.
 
-Without virtual threads the application runs on the platform thread pool of Tomcat, where every
-open update stream occupies one of a few hundred threads. It works until the number of logged-in
-users approaches that limit, and then stops accepting requests, so this is not a setting to leave
-for later.
+Without virtual threads the application runs on the platform thread pool of Tomcat. There every
+open update stream takes one of a few hundred threads. It works until the number of logged-in
+users comes close to that limit, and then it stops accepting requests. So do not leave this
+setting for later.
 
 ## Gateway
 
@@ -60,21 +60,21 @@ spring:
           streaming-buffer-size: 16384
 ```
 
-The gateway copies a response chunk by chunk and flushes per chunk for the media types listed in
-`streaming-media-types`, whose default already contains `text/event-stream`. Everything else is
-copied without that per-chunk flush. Set the list explicitly only if a workflow module streams
-something under a different media type, and remember that setting it replaces the default rather
-than adding to it.
+The gateway copies a response chunk by chunk. For the media types listed in
+`streaming-media-types` it flushes after every chunk. The default of that list already contains
+`text/event-stream`. Everything else is copied without that flush per chunk. Set the list
+explicitly only if a workflow module streams something under a different media type. Remember
+that setting it replaces the default and does not add to it.
 
-Two prefixes that look right and are not: `spring.cloud.gateway.mvc.*` is the name from earlier
-gateway versions, and `spring.cloud.gateway.proxy-exchange.*` belongs to a different module
+Two prefixes look right and are not. `spring.cloud.gateway.mvc.*` is the name from earlier
+gateway versions. `spring.cloud.gateway.proxy-exchange.*` belongs to a different module
 altogether.
 
 ## Outbound HTTP client
 
-Timeouts for the proxy are no longer configured under the gateway prefix. They are Spring Boot's
-global HTTP client settings, and they apply to every blocking HTTP client the application builds.
-This is what the container sets:
+Timeouts for the proxy are no longer configured under the gateway prefix. They are Spring
+Boot's global settings for HTTP clients, and they apply to every blocking HTTP client the
+application builds. This is what the container sets:
 
 ```yaml
 spring:
@@ -83,19 +83,19 @@ spring:
       connect-timeout: 10s
 ```
 
-There is no read timeout, and leaving it unset is the decision, not an omission. A read timeout
-applies to a streamed response as well as to a short one, and a server-sent-event stream proxied
-from a workflow module is idle between events. Any read timeout would therefore tear such a stream
-down mid-stream, and the UI would reconnect in a loop. The container's `application.yaml` carries a
-comment saying so.
+There is no read timeout. Leaving it unset is a decision, not something forgotten. A read
+timeout applies to a streamed response as well as to a short one. A stream of server-sent
+events proxied from a workflow module is idle between events. So any read timeout would tear
+such a stream down in the middle, and the UI would reconnect in a loop. A comment in the
+container's `application.yaml` says so.
 
-Setting `spring.http.clients.read-timeout` in a derived application overrides that decision for
-every outbound call the application makes, proxied streams included, because per-route timeouts do
-not exist in the WebMVC gateway. If a slow workflow module has to be bounded, bound it somewhere
-that can tell a stream from a request.
+If a derived application sets `spring.http.clients.read-timeout`, that overrides the decision
+for every outbound call the application makes, proxied streams included. The WebMVC gateway has
+no timeouts per route. If you have to limit a slow workflow module, limit it somewhere which
+can tell a stream from a request.
 
 `spring.http.clients.imperative.factory` selects the request factory. Leave it at the default
-unless there is a reason: the default is the JDK HTTP client, which parks on virtual threads
+unless there is a reason. The default is the JDK HTTP client, which parks on virtual threads
 without pinning a carrier thread.
 
 ## What stops working
@@ -105,9 +105,9 @@ without pinning a carrier thread.
 | `server.netty.*` | Tomcat serves the application now |
 | `spring.reactor.*` | no Reactor on the classpath |
 
-Server-wide settings which are not transport specific, `server.port`, `server.compression.*` and
-`server.error.*` among them, are unchanged.
+Settings for the whole server which do not depend on the transport are unchanged,
+`server.port`, `server.compression.*` and `server.error.*` among them.
 
-Look for anything else under a WebFlux-only prefix in the application's own YAML as well. The
-container has none, so this list only covers what a derived application is likely to carry, and an
-unbound key produces no message either way.
+Also look for anything else under a prefix which only WebFlux has, in the application's own
+YAML. The container has none. So this list only covers what a derived application probably
+carries. An unbound key produces no message either way.

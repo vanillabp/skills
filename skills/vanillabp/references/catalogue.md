@@ -1,14 +1,14 @@
 # The blueprint catalogue
 
-A blueprint is a small runnable application showing one aspect of building business process
-software with VanillaBP. They all use the same package structure, the same placeholders and the
-same test setup, so understanding one means understanding all of them and combining two means
-applying two deltas.
+A blueprint is a small application you can run. It shows one aspect of building business
+process software with VanillaBP. They all use the same package structure, the same placeholders
+and the same test setup. So if you understand one, you understand all of them. To combine two,
+you apply two deltas.
 
-Blueprints are developed in one monorepo and delivered as one repository per blueprint and
-platform, at `https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>` where
-`<platform>` is `springboot` or `quarkus`. Those delivered repositories are read-only mirrors,
-so issues and pull requests belong into
+Blueprints are developed in one monorepo. They are delivered as one repository per blueprint
+and platform, at `https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>`, where
+`<platform>` is `springboot` or `quarkus`. Those delivered repositories are read-only mirrors.
+So issues and pull requests belong in
 [the monorepo](https://github.com/vanillabp-blueprints/blueprints).
 
 ## Always prefer the live index
@@ -17,19 +17,19 @@ so issues and pull requests belong into
 https://raw.githubusercontent.com/vanillabp-blueprints/.github/main/blueprints.yaml
 ```
 
-That file is the single source of truth. Per blueprint it carries the BPMN element types it
-covers (`covers.bpmn`), the SPI members it uses (`covers.spi`), which blueprints it composes
-with (`composes_with`), the blueprint it builds on (`base`), the documentation it links
-(`docs`) and per platform the status, the repository and the URL of its `AGENTS.md`.
+That file is the single source of truth. For each blueprint it carries the BPMN element types
+it covers (`covers.bpmn`), the SPI members it uses (`covers.spi`), which blueprints it combines
+with (`composes_with`), the blueprint it builds on (`base`), and the documentation it links
+(`docs`). Per platform it carries the status, the repository and the URL of its `AGENTS.md`.
 
-The tables below are a snapshot taken on 2026-08-22 for the case that you cannot reach the
-network. Say so when you work from the snapshot, because a blueprint added since then is
-missing here.
+The tables below are a copy taken on 2026-08-22, for the case that you cannot reach the
+network. Say so when you work from the copy, because a blueprint added since then is missing
+here.
 
 ## From BPMN element to blueprint
 
 Parse the model, collect the element types, then look them up. Several rows may apply to one
-model, and that is normal: each is a delta on top of `module-single`.
+model, and that is normal. Each is a delta on top of `module-single`.
 
 | BPMN element | Blueprint |
 |---|---|
@@ -52,8 +52,8 @@ model, and that is normal: each is a delta on top of `module-single`.
 | `bpmn:EndEvent` the application has to learn about | `bpmn-workflow-ended` |
 
 A parallel gateway, a non-interrupting boundary event and a multi-instance element each add a
-token to the workflow, so each of them also makes `persistence-parallel-branches` relevant.
-Read it before letting two branches write one aggregate.
+token to the workflow. So `persistence-parallel-branches` matters for each of them too. Read it
+before you let two branches write one aggregate.
 
 ## Workflow module structure and runtime
 
@@ -108,11 +108,11 @@ Read it before letting two branches write one aggregate.
 
 ## Choosing the BPMS
 
-Which engine a blueprint runs on is a Maven profile and never a code change:
-`-Pcamunda7` (the default), `-Pcamunda8` or `-Pprocess-engine-api`. Keep that wiring when you
-copy a blueprint, described in [project-structure.md](project-structure.md) under the
-configuration section.
+A Maven profile decides which engine a blueprint runs on, never a code change: `-Pcamunda7`
+(the default), `-Pcamunda8` or `-Pprocess-engine-api`. Keep that wiring when you copy a
+blueprint. [project-structure.md](project-structure.md) describes it in the section about
+configuration.
 
 Blueprints are built and tested against Camunda 7 and Camunda 8. The Process-Engine-API adapter
-is developed mock first and has no engine behind it, so no blueprint executes a workflow on it
-yet.
+is developed against a mock first and has no engine behind it. So no blueprint runs a workflow
+on it yet.

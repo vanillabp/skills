@@ -1,6 +1,6 @@
 # Where VanillaBP is documented
 
-Blueprints do not repeat reference documentation, they link it, and so should anything you
+Blueprints do not repeat reference documentation. They link it, and so should anything you
 generate.
 
 | Topic | Where |
@@ -31,12 +31,12 @@ generate.
 
 ## Adapter wikis
 
-Everything BPMS specific lives here: configuration keys, transactional behavior and the
-deviations each engine forces.
+Everything specific to a BPMS (business process management system) lives here: configuration
+keys, how transactions behave, and the deviations each engine forces.
 
 - [Camunda 7](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki)
 - [Camunda 8](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki)
 - [bpm-crafters Process-Engine-API](https://github.com/vanillabp/process-engine-api-adapter/wiki)
 
-Each of them has a `Configuration` page and a `Deviations` page. The deviations page is the one
-to read when an engine does not behave the way the platform documentation describes.
+Each of them has a `Configuration` page and a `Deviations` page. Read the deviations page when
+an engine does not behave the way the platform documentation describes.

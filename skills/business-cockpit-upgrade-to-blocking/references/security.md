@@ -27,12 +27,12 @@
 chain scopes itself the same way it did before, with an `OrRequestMatcher` around two path
 patterns.
 
-`BasicAuthenticationEntryPoint` is instantiated with `new` and configured with `setRealmName(...)`,
-where the reactive entry point had `setRealm(...)`. Nothing calls its `afterPropertiesSet()` when
-it is built by hand rather than declared as a bean, so the container calls it itself before handing
-the instance to the DSL.
+`BasicAuthenticationEntryPoint` is created with `new` and configured with `setRealmName(...)`,
+where the reactive entry point had `setRealm(...)`. When it is built by hand and not declared
+as a bean, nothing calls its `afterPropertiesSet()`. So the container calls it itself, before
+it hands the instance to the DSL.
 
-The lambda DSL is unchanged in shape, so a chain converts statement by statement:
+The lambda DSL keeps its shape, so a chain converts statement by statement:
 
 ```java
 // before
@@ -70,21 +70,21 @@ public SecurityFilterChain guiHttpSecurity(
 }
 ```
 
-`HttpSecurity.build()` throws a checked `Exception`, which the reactive builder did not, so every
-converted bean method gains a `throws Exception`.
+`HttpSecurity.build()` throws a checked `Exception`, and the reactive builder did not. So every
+converted bean method gets a `throws Exception`.
 
-Where the reactive chain configured the authentication manager inside `httpBasic(...)`, the servlet
-chain sets it on the chain itself with `authenticationManager(...)`. That keeps it scoped to the
-one chain, which is what the container relies on so that the GUI chain and the BPMS API chain
-authenticate against different credentials.
+The reactive chain configured the authentication manager inside `httpBasic(...)`. The servlet
+chain sets it on the chain itself, with `authenticationManager(...)`. That limits it to the one
+chain. The container relies on that, so that the GUI chain and the BPMS API chain authenticate
+against different credentials.
 
 `container/README.md` in the `business-cockpit` repository shows a full derived `guiHttpSecurity`
 bean written against the blocking API. Read it before writing one of your own.
 
 ## The public matchers are renamed
 
-`WebSecurityConfiguration` exposes the paths its chain leaves unprotected as public constants, and
-a derived chain reuses them. Their names carry the old type and change with it:
+`WebSecurityConfiguration` offers the paths its chain leaves unprotected as public constants,
+and a derived chain reuses them. Their names carry the old type and change with it:
 
 | Before | After |
 |---|---|
@@ -94,8 +94,8 @@ a derived chain reuses them. Their names carry the old type and change with it:
 | `staticWebExchangeMatcher` | `staticRequestMatcher` |
 | `workflowModulesProxyWebExchangeMatcher` | `workflowModulesProxyRequestMatcher` |
 
-The paths behind them are unchanged. This is the one rename in the upgrade that breaks a derived
-application on a name rather than on a type, which is why the survey greps for the old names.
+The paths behind them are unchanged. This is the one rename in the upgrade which breaks a
+derived application on a name, not on a type. That is why the survey greps for the old names.
 
 ## JWT
 
@@ -116,21 +116,21 @@ which only supplies its own `JwtMapper` keeps working.
 The work is split over two classes, one for each direction of the cookie.
 
 `JwtSecurityContextRepository` writes it. It is a `SecurityContextRepository` wired into
-`httpBasic(basic -> basic.securityContextRepository(...))`, and its `saveContext` adds the JWT
-cookie to the response of the request which authenticated by basic auth. Its `loadContext` reads
-the cookie back, which the interface still requires even though Spring Security marks the method
-deprecated. Its static `clearCookie(JwtProperties, HttpServletResponse)` overwrites the cookie with
-an expired one, and `JwtLogoutSuccessHandler` calls it.
+`httpBasic(basic -> basic.securityContextRepository(...))`. Its `saveContext` adds the JWT
+cookie to the response of the request which authenticated by basic auth. Its `loadContext`
+reads the cookie back. The interface still requires that method, although Spring Security marks
+it deprecated. Its static `clearCookie(JwtProperties, HttpServletResponse)` overwrites the
+cookie with an expired one, and `JwtLogoutSuccessHandler` calls it.
 
-`PassiveJwtSecurityFilter` reads it. It is an `OncePerRequestFilter` taking `JwtProperties` and a
-`JwtMapper`, added after `BasicAuthenticationFilter`. It puts the authentication into
-`SecurityContextHolder` and clears the context again in a `finally` block. Add it to the chain with
-`addFilterAfter(...)` and do not declare it as a bean: Spring Boot would then register it a second
-time as a plain servlet filter, outside the security filter chain.
+`PassiveJwtSecurityFilter` reads it. It is a `OncePerRequestFilter` which takes `JwtProperties`
+and a `JwtMapper`, added after `BasicAuthenticationFilter`. It puts the authentication into
+`SecurityContextHolder`, and clears the context again in a `finally` block. Add it to the chain
+with `addFilterAfter(...)`, and do not declare it as a bean. Spring Boot would then register it
+a second time as a plain servlet filter, outside the security filter chain.
 
-`JwtLogoutSuccessHandler` is a `SimpleUrlLogoutSuccessHandler` now. It clears the cookie and
-delegates to the base class, so the target URL is configured with `setDefaultTargetUrl(...)` rather
-than passed to the constructor.
+`JwtLogoutSuccessHandler` is now a `SimpleUrlLogoutSuccessHandler`. It clears the cookie and
+hands over to the base class. So you configure the target URL with `setDefaultTargetUrl(...)`,
+and do not pass it to the constructor.
 
 ## Beans a customized application overrides
 
