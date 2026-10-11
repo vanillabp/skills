@@ -22,9 +22,9 @@ stays a technical term, but say what it means the first time it turns up, and wr
 abbreviation out once. If a sentence trips you up when you read it aloud, rewrite it.
 
 This holds for every English text here: the `SKILL.md` files and the pages below `references/`,
-the README files, `CONTRIBUTING.md`, this file, and the texts of commits and pull requests. This
-repository has no wiki of its own. If it gets one, the rule holds there as well, because a wiki
-clone has no `AGENTS.md` of its own.
+the comments in their code examples, the README files, `CONTRIBUTING.md`, this file, and the
+texts of commits and pull requests. This repository has no wiki of its own. If it gets one, the
+rule holds there as well, because a wiki clone has no `AGENTS.md` of its own.
 
 Nothing a program reads is renamed for the sake of language. The name of a skill, the keys of
 its front matter, file names and the anchors other pages link to stay as they are, because
