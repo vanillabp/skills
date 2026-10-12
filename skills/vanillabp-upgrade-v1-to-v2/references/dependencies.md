@@ -65,12 +65,14 @@ direction. So the client a build was compiled against is the lowest cluster vers
 accepts. The rule which follows: take the line whose client version is at or below your
 cluster's minor version.
 
-Two lines are released at a time, plus a preview built against the alpha of the next minor
-version. Today that is `-8.8` and `-8.9`, with `-8.10-alpha<n>` as the preview. So a cluster on
-8.9 or newer asks for `-8.9`, and one on 8.8 for `-8.8`. Read the lines and their client
-versions from the table in the
+Today there are three lines. `-8.10` is the current one and gets everything, `-8.8` and `-8.9`
+get bugfixes only. A preview line, built against a pre-release of the next minor version, joins
+them while such a pre-release exists. There is none at the moment. So a cluster on 8.10 or newer
+asks for `-8.10`, one on 8.9 for `-8.9`, and one on 8.8 for `-8.8`. Read the lines and their
+client versions from the table in the
 [adapter's wiki](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki#which-release-line-to-use),
-not from here. A line ends when the next minor version goes GA.
+not from here. A line lives as long as Camunda maintains its minor version, not only until the
+next minor version goes GA.
 
 Nothing in your code depends on which line you pick. The methods are the same on all of them,
 and a call your cluster cannot serve fails with a message which names your line. Moving to

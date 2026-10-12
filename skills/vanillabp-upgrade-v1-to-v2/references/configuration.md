@@ -197,7 +197,7 @@ Two settings which used to fit together now contradict each other, and the boot 
 ignore the configured name. Where `by-adapter` does apply, Camunda 8 also asks the cluster
 whether the tenant can be used at all, before it deploys.
 
-Three notes for upgraders:
+Four notes for upgraders:
 
 - Camunda 7: nothing to do where version 1 ran with its defaults. It deployed every workflow
   module into a tenant named after it. `by-adapter` deploys into the same one. So the
@@ -237,10 +237,13 @@ instead. After the upgrade nothing reads them, and they hold every BPMN the appl
 deployed. So point the user at them. The user decides whether to drop them. Do not do it for
 them.
 
-## A new section for remote BPMS: the outbox
+## A new section: the outbox
 
 Adapters of remote BPMS (Camunda 8 and Process-Engine-API) start workflows in two phases,
-through a transaction outbox. It works out of the box, the store is created automatically, and
-you can tune it with `vanillabp.outbox.*`. Read
+through a transaction outbox. The Camunda 7 adapter does it as well, although its engine is
+embedded: every operation which moves a workflow on runs after your commit, see
+[behavior-changes.md](behavior-changes.md). So a Camunda 7 application needs the outbox too.
+It works out of the box, the store is created automatically, and you can tune it with
+`vanillabp.outbox.*`. Read
 [what it guarantees](https://github.com/vanillabp/adapter-platform-integration/wiki/Spring-Boot-integration#what-the-outbox-guarantees)
 before you go to production, because operations has to watch for blocked entries.
