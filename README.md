@@ -14,7 +14,7 @@ which support the standard.
 |---|---|
 | [`vanillabp`](skills/vanillabp) | Builds a new application from a BPMN model, or adds a BPMN scenario to an existing one. It picks the matching [blueprints](https://github.com/vanillabp-blueprints) and combines them |
 | [`vanillabp-upgrade-v1-to-v2`](skills/vanillabp-upgrade-v1-to-v2) | Looks through a VanillaBP 1 project for everything the upgrade to version 2 touches, then applies it |
-| [`business-cockpit`](skills/business-cockpit) | Leads a question about the [Business Cockpit](https://github.com/vanillabp/business-cockpit) to the page which answers it: reporting from a workflow module, serving a user task form, running a cockpit of your own, and building a cockpit user interface in any framework |
+| [`business-cockpit`](skills/business-cockpit) | Leads a question about the [Business Cockpit](https://github.com/vanillabp/business-cockpit) to the page which answers it: reporting from a workflow module, serving a user task form, and running a cockpit. For a cockpit of your own it points to the skill `business-cockpit-creator` in the cockpit repository |
 | [`business-cockpit-upgrade-to-blocking`](skills/business-cockpit-upgrade-to-blocking) | Looks through a customized [Business Cockpit](https://github.com/vanillabp/business-cockpit) application for everything the move from reactive WebFlux to blocking Spring MVC on virtual threads touches, then applies it |
 
 The skills link the reference documentation instead of copying it. So an agent which uses them
@@ -74,7 +74,7 @@ really contains.
 | [Platform wiki](https://github.com/vanillabp/adapter-platform-integration/wiki) | concepts, workflow modules, platform integration, configuration |
 | [spi-for-java](https://github.com/vanillabp/spi-for-java) | the annotations and interfaces applications use |
 | the wiki of each [BPMS adapter](https://github.com/vanillabp/adapter-platform-integration/wiki/BPMS-adapters) | everything specific to one engine |
-| [business-cockpit](https://github.com/vanillabp/business-cockpit) | the cockpit container, its extension points, how a customized cockpit is built, and the description a cockpit user interface is built from |
+| [business-cockpit](https://github.com/vanillabp/business-cockpit) | the cockpit container, its extension points, how a customized cockpit is built, and the skill `business-cockpit-creator`, which generates a cockpit of your own |
 
 These skills are for people who build applications with VanillaBP. Skills for working on
 VanillaBP itself live in
