@@ -18,7 +18,9 @@ guide for it.
 ## Renamed artifacts
 
 The adapter artifacts were renamed from `<bpms>-spring-boot-adapter` to
-`<bpms>-adapter-spring-boot`. Every adapter now has a Quarkus artifact as well.
+`<bpms>-adapter-spring-boot`. The Camunda 7 and Camunda 8 adapters also changed their groupId,
+from `org.camunda.community.vanillabp` to `io.vanillabp`. Every adapter now has a Quarkus
+artifact as well.
 
 ```xml
 <!-- before (Spring Boot, Camunda 7) -->
@@ -30,7 +32,7 @@ The adapter artifacts were renamed from `<bpms>-spring-boot-adapter` to
 
 <!-- after -->
 <dependency>
-  <groupId>org.camunda.community.vanillabp</groupId>
+  <groupId>io.vanillabp</groupId>
   <artifactId>camunda7-adapter-spring-boot</artifactId>
   <version>2.0.0</version>
 </dependency>
@@ -38,8 +40,8 @@ The adapter artifacts were renamed from `<bpms>-spring-boot-adapter` to
 
 | BPMS | Spring Boot | Quarkus | Version |
 |---|---|---|---|
-| Camunda 7 | `org.camunda.community.vanillabp:camunda7-adapter-spring-boot` | `org.camunda.community.vanillabp:camunda7-adapter-quarkus` | `2.0.0` |
-| Camunda 8 | `org.camunda.community.vanillabp:camunda8-adapter-spring-boot` | `org.camunda.community.vanillabp:camunda8-adapter-quarkus` | `2.0.0` plus the cluster line, e.g. `2.0.0-8.9` |
+| Camunda 7 | `io.vanillabp:camunda7-adapter-spring-boot` | `io.vanillabp:camunda7-adapter-quarkus` | `2.0.0` |
+| Camunda 8 | `io.vanillabp:camunda8-adapter-spring-boot` | `io.vanillabp:camunda8-adapter-quarkus` | `2.0.0` plus the cluster line, e.g. `2.0.0-8.9` |
 | Process-Engine-API | `io.vanillabp:process-engine-api-adapter-spring-boot` | `io.vanillabp:process-engine-api-adapter-quarkus` | `2.0.0` |
 
 Adapters are released on their own, apart from the platform, so they carry their own version.
@@ -53,7 +55,7 @@ is part of its version. A coordinate written without it resolves to nothing:
 
 ```xml
 <dependency>
-  <groupId>org.camunda.community.vanillabp</groupId>
+  <groupId>io.vanillabp</groupId>
   <artifactId>camunda8-adapter-spring-boot</artifactId>
   <version>2.0.0-8.9</version>
 </dependency>
@@ -70,7 +72,7 @@ get bugfixes only. A preview line, built against a pre-release of the next minor
 them while such a pre-release exists. There is none at the moment. So a cluster on 8.10 or newer
 asks for `-8.10`, one on 8.9 for `-8.9`, and one on 8.8 for `-8.8`. Read the lines and their
 client versions from the table in the
-[adapter's wiki](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki#which-release-line-to-use),
+[adapter's wiki](https://github.com/vanillabp/camunda8-adapter/wiki#which-release-line-to-use),
 not from here. A line lives as long as Camunda maintains its minor version, not only until the
 next minor version goes GA.
 
@@ -79,7 +81,7 @@ and a call your cluster cannot serve fails with a message which names your line.
 another line means upgrading the cluster. So it is one decision, not two.
 
 Where the project uses Renovate, extend the preset the adapter ships
-(`github>camunda-community-hub/vanillabp-camunda8-adapter//renovate/camunda8-lines.json`). It
+(`github>vanillabp/camunda8-adapter//renovate/camunda8-lines.json`). It
 reads the suffix as a compatibility value and never changes it on its own. So no automatic
 update moves the application to a minor version of the cluster it does not run.
 

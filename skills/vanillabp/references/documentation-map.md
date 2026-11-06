@@ -34,8 +34,8 @@ generate.
 Everything specific to a BPMS (business process management system) lives here: configuration
 keys, how transactions behave, and the deviations each engine forces.
 
-- [Camunda 7](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki)
-- [Camunda 8](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki)
+- [Camunda 7](https://github.com/vanillabp/camunda7-adapter/wiki)
+- [Camunda 8](https://github.com/vanillabp/camunda8-adapter/wiki)
 - [bpm-crafters Process-Engine-API](https://github.com/vanillabp/process-engine-api-adapter/wiki)
 
 Each of them has a `Configuration` page and a `Deviations` page. Read the deviations page when
