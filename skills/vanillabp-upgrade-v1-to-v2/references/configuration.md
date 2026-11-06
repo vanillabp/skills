@@ -123,8 +123,8 @@ vanillabp:
 ```
 
 The adapter decides the exact keys. See the
-[Camunda 7](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki/Configuration),
-[Camunda 8](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki/Configuration)
+[Camunda 7](https://github.com/vanillabp/camunda7-adapter/wiki/Configuration),
+[Camunda 8](https://github.com/vanillabp/camunda8-adapter/wiki/Configuration)
 and
 [Process-Engine-API](https://github.com/vanillabp/process-engine-api-adapter/wiki/Configuration)
 wikis.
@@ -166,7 +166,7 @@ use. The format needs a Camunda dataformat plugin on the classpath. Name the plu
 needs more than a constructor without arguments. Without a format the engine falls back to Java
 serialization. That means a blob in Cockpit, and your classes in the engine's database. You can
 set the format per workflow, workflow module and adapter.
-[What becomes of a shared value](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki/What-becomes-of-a-shared-value)
+[What becomes of a shared value](https://github.com/vanillabp/camunda7-adapter/wiki/What-becomes-of-a-shared-value)
 has the formats, the plugin and what each format cannot carry.
 
 `vanillabp.adapters.<id>.startup-wait` is how long the Camunda 8 adapter waits for its cluster

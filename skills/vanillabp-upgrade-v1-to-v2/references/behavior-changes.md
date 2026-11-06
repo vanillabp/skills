@@ -254,7 +254,7 @@ engine's database holds serialized instances of your classes. `${order.customer.
 only while the class in the database and the class on the classpath still match. The adapter
 warns once when it writes such a value without a format. Version 1 never had this question,
 because it handed the expression the live Java object.
-[What becomes of a shared value](https://github.com/camunda-community-hub/vanillabp-camunda7-adapter/wiki/What-becomes-of-a-shared-value)
+[What becomes of a shared value](https://github.com/vanillabp/camunda7-adapter/wiki/What-becomes-of-a-shared-value)
 has the formats, the plugin and what each format cannot carry.
 
 ## Camunda 8 specifically
