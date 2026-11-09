@@ -1,6 +1,6 @@
 ---
 name: business-cockpit
-description: Work with the VanillaBP Business Cockpit, the application which shows the cases and user tasks a workflow module reports. Covers connecting a workflow module and reporting into it, the details providers which fill a list column, serving a user task form through module federation, running the cockpit server, who sees which case, building a cockpit application of your own, and building a cockpit user interface in any web framework. Use whenever a task mentions the Business Cockpit, a task list or case list for business users, vanillabp.cockpit configuration keys, a @UserTaskDetailsProvider or @WorkflowDetailsProvider method, a user task form, or replacing the delivered React front end.
+description: Work with the VanillaBP Business Cockpit, the application which shows the cases and user tasks a workflow module reports. Covers connecting a workflow module and reporting into it, the details providers which fill a list column, serving a user task form, running the cockpit server, who sees which case, and where to start when somebody wants a cockpit of their own. Use whenever a task mentions the Business Cockpit, a task list or case list for business users, vanillabp.cockpit configuration keys, a @UserTaskDetailsProvider or @WorkflowDetailsProvider method, or a user task form.
 license: Apache-2.0
 metadata:
   author: vanillabp
@@ -66,42 +66,29 @@ out of the workflow module. Module federation loads it into the cockpit's page.
   is for a cockpit of your own: the library next to the container, and the beans nobody can
   write for you.
 
-## Building a user interface
+## Building a cockpit of your own
 
-The cockpit ships a user interface written in React. It is the worked example, not the product.
-Every organisation brings its own framework, its own version of it, its own component library
-and its own design. So the delivered application gets copied and rebuilt, and the copy then
-drifts away from what the cockpit expects.
+Every organisation brings its own web framework, its own component library and its own design.
+So the cockpit delivers no user interface. A skill generates one instead: the skill
+`business-cockpit-creator`. It lives in the `business-cockpit` repository, next to the interfaces
+it describes, because a copy anywhere else would go out of date.
 
-So the user interface is described, not delivered. The description lives in the
-`business-cockpit` repository, next to the interfaces it describes. It is complete enough to
-build a front end from it, without reading the React sources:
-[skills/business-cockpit-user-interface](https://github.com/vanillabp/business-cockpit/tree/main/skills/business-cockpit-user-interface).
+The skill first asks the user about framework, design, languages, screens, lists and login. Then
+it generates two repositories: the user interface with its dev shells, and the backend
+application with a local environment to run it. At the end it checks both against a checklist.
 
-It is a skill of its own, so load it when the task is a user interface. Do not work from this
-page for that job, and do not read the React sources instead. They are one way of answering the
-description. The cockpit measures a user interface against the description, not against them.
-What you find there:
+Install it next to this one:
 
-| Page | What it answers |
-|---|---|
-| `SKILL.md` | what to build, in which order, what a cockpit user interface never does, and how it gets served |
-| `references/gui-api.md` | logging in, the endpoints, paging, sorting and filtering over reported business data, the suggestions under a search field, the modes of a list, and the live update stream |
-| `references/module-federation.md` | the four parts of a workflow module, how one is loaded, and what the host has to share |
-| `references/types.md` | the types, and which of them are the contract and which are convenience |
-| `references/behaviour.md` | the screens, the columns, the cells, what a list does while somebody watches it, and the actions on a task |
-| `references/dev-shell.md` | the workbench for a form, and the simulator behind it |
-| `references/rough-edges.md` | the seventeen places where the obvious thing is the wrong thing |
+```bash
+gh skill install vanillabp/business-cockpit business-cockpit-creator
+```
 
-Two things to know before you open it. The text is German until it has been reviewed, and it
-will be translated afterwards. Its front matter is English, because an agent matches a task
-against that. And it names its own gaps. Where nobody could say what a field is for, it says so
-instead of guessing. Treat a named gap as a question for the maintainers. Do not fill it in
-with an answer which only sounds right.
+Load that skill when the task is a new cockpit, its user interface or its backend application. Do
+not work from this page for that job.
 
 [Customizing the user interface](https://github.com/vanillabp/business-cockpit/wiki/Customizing-the-user-interface)
-is the same subject for a reader who does not build one: what the delivered application gets
-you, how far a copy of it goes, and how to use the description.
+is the same subject in the wiki: the packages, changing the look, and what a user interface has to
+answer.
 
 ## When something goes wrong
 
