@@ -22,7 +22,9 @@ Everything which is not a signature survives the upgrade. The MongoDB data is un
 collection is renamed. The REST contracts keep their OpenAPI specifications. So a workflow
 module which reports into the cockpit needs no change and no new deployment. The extension
 points keep their bean names. So whatever the derived application overrides today, it still
-overrides afterwards.
+overrides afterwards. The abstract list controllers are the exception: they ask a subclass for
+one visibility now, and the concrete list controllers no longer come along, see
+[references/web-layer.md](references/web-layer.md).
 
 What changes is the type of nearly everything which crosses those extension points: no `Mono`,
 no `Flux`, no `ServerWebExchange`, no `ReactiveMongoTemplate`, no `SecurityWebFilterChain`. One
@@ -57,6 +59,8 @@ what each finding means. Write down a list of what you found before you touch a 
 - every dependency on a `-server-reactive` API artifact, on WebFlux and on the reactive gateway,
 - every controller which implements a generated API interface or extends one of the container's
   abstract controllers,
+- which of the five list controllers of the container the application has no controller of its
+  own for, on the same path,
 - every security bean, and for each one whether it overrides a container bean by name,
 - every reference to a `...WebExchangeMatcher` constant of `WebSecurityConfiguration`, which is
   renamed,

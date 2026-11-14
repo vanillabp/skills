@@ -50,25 +50,92 @@ with it.
 
 ## Controllers extending the container
 
-The container ships abstract controllers. A customized application extends them to plug in its
-own queries. Among them are `AbstractUserTaskListGuiApiController`,
-`AbstractWorkflowListGuiApiController` and `AbstractWorkflowModulesGuiApiController`. Their
-abstract hook methods change the same way:
+The reactive container shipped three abstract controllers, and also five concrete ones which
+extended them. Both change, and not only in their types.
+
+### The concrete list controllers stay in the container
+
+From `0.8.0` on, the abstract classes are in the library `business-cockpit`. The five concrete
+controllers stayed in `container`, and a derived application no longer has them on its classpath.
+If the application relied on them, it starts, its user interface loads, and every list stays
+empty. Nothing in the log says why. So the survey has to answer, for each of these five, whether
+the application has a controller of its own on the same path:
+
+| Controller in `container` | `@RequestMapping` | Base class | Returns |
+|---|---|---|---|
+| `tasklist.api.v1.GuiApiController` | `/gui/api/v1` | `AbstractUserTaskListGuiApiController` | `UserTaskVisibility.everythingTheUserMayWorkOn(currentUser)` |
+| `tasklist.api.v1.CurrentUsersTasksGuiApiController` | `/gui/api/v1/current-user` | `AbstractUserTaskListGuiApiController` | `UserTaskVisibility.onlyWhatIsTheUsersOwn(currentUser)` |
+| `tasklist.api.v1.UsersRoleAssignedTasksGuiApiController` | `/gui/api/v1/user-roles` | `AbstractUserTaskListGuiApiController` | `UserTaskVisibility.whatTheUsersGroupsMayTake(currentUser)` |
+| `workflowlist.api.v1.GuiApiController` | `/gui/api/v1` | `AbstractWorkflowListGuiApiController` | `WorkflowVisibility.workflowsAddressedTo(currentUser)` |
+| `workflowmodules.api.v1.GuiApiController` | `/gui/api/v1` | `AbstractWorkflowModulesGuiApiController` | `WorkflowModuleVisibility.modulesAddressedTo(currentUser)` |
+
+The packages start with `io.vanillabp.cockpit`. For each one the application lacks, write a
+subclass of a few lines. Copy it from `container`, and give it a bean name of its own, because
+three of the classes have the same simple name. Ask the user which lists their user interface
+calls, and do not write a controller nobody calls.
+
+The workflow list of the reactive container showed every workflow to everybody. The one in
+`container` now shows a user the workflows addressed to them or to one of their groups, and the
+ones addressed to nobody. If the users of the application have to see every workflow, return
+`WorkflowVisibility.everyWorkflow()`. Ask the user before you choose.
+
+### A subclass answers with a visibility
+
+The reactive abstract classes had one abstract hook per read and per action, for example
+`getUserTasks`, `getUserTask`, `claimTask`, `getWorkflows` and `getWorkflowModules`, and every
+subclass implemented all of them. Now each class has one abstract method, and it returns a
+visibility:
+
+| Base class | Abstract method | Returns |
+|---|---|---|
+| `AbstractUserTaskListGuiApiController` | `userTasksVisibleTo(UserDetails currentUser)` | `UserTaskVisibility` |
+| `AbstractWorkflowListGuiApiController` | `workflowsVisibleTo(UserDetails currentUser)` | `WorkflowVisibility` |
+| `AbstractWorkflowModulesGuiApiController` | `workflowModulesVisibleTo(UserDetails currentUser)` | `WorkflowModuleVisibility` |
+
+The base class answers the list, the search, the count, a single entry and every action on one
+from that visibility. A converted subclass looks like this:
 
 ```java
 // before
-protected abstract Mono<Page<UserTask>> getUserTasks(
-        UserDetails currentUser, int pageNumber, int pageSize, ...);
+@Override
+protected Mono<Page<UserTask>> getUserTasks(
+        UserDetails currentUser, int pageNumber, int pageSize, ...) {
+    return userTaskService.getUserTasks(...);
+}
+// and the same for getUserTasksUpdated, kwic, getUserTask, markAsRead,
+// claimTask, claimTasks, assignTask, assignTasks and setFollowUpDate
 
 // after
-protected abstract Page<UserTask> getUserTasks(
-        UserDetails currentUser, int pageNumber, int pageSize, ...);
+@Override
+protected UserTaskVisibility userTasksVisibleTo(
+        final UserDetails currentUser) {
+
+    return UserTaskVisibility.everythingTheUserMayWorkOn(currentUser);
+
+}
 ```
 
-An override which keeps the old signature no longer overrides anything. If the hook is
-abstract, the class fails to compile, and that is what you want. Where the hook was not
-abstract, add `@Override` to every implementation of it before you start. Then the same mistake
-is caught there too.
+Do not translate the old hooks one by one into blocking code. First find out which users and
+groups each hook let through. Then pick the visibility which says the same, or build one of your
+own from the record's constructor. Show the user the visibility you chose for each controller,
+because a different rule shows other people other tasks.
+
+What happens to the old hooks:
+
+- `getUserTask`, `markAsRead`, `claimTask`, `claimTasks`, `assignTask`, `assignTasks`,
+  `setFollowUpDate`, `getWorkflow` and `getWorkflowModules(UserDetails)` are no longer hooks.
+  Delete them. A method left behind without `@Override` still compiles and is never called.
+- `getUserTasks`, `getUserTasksUpdated` and `kwic` of the task list, and `getWorkflows`,
+  `getWorkflowsUpdated`, `getUserTasksOfWorkflow` and `kwic` of the workflow list, are no longer
+  abstract. Delete them too, unless the application reads the data in a way of its own. An override
+  takes the visibility as its first parameter instead of the current user, and returns `Page` or
+  `List` instead of `Mono` or `Flux`. `countUserTasks` and `countWorkflows` are new hooks of the
+  same kind.
+
+Add `@Override` to every method you keep, before you start. Then a hook whose parameters changed
+fails to compile, instead of silently overriding nothing. Take the parameters from the class on the
+classpath, not from this file. They changed after `0.8.0` too, and the release notes of the
+`business-cockpit` repository list each change.
 
 The injected fields of those base classes change type as well: `ReactiveUserContext` becomes
 `UserContext`, described in [security.md](security.md).
@@ -78,12 +145,19 @@ The injected fields of those base classes change type as well: `ReactiveUserCont
 `/gui/api/v1/updates` returns an `SseEmitter` instead of a `Flux<ServerSentEvent<?>>`.
 `LoginApiController` holds one `UpdateEmitter` per subscribed browser in a map.
 
-The event pipeline in front of it is unchanged. An application which publishes its own push
-events keeps using `ApplicationEventPublisher` with `io.vanillabp.cockpit.gui.api.v1.GuiEvent`.
-The container still collects those events through an
-`@EventListener(classes = GuiEvent.class)`, and sends them to every emitter at a fixed
-interval. So a derived application which only publishes `GuiEvent` has nothing to do here. One
-which replaced the endpoint itself has to rewrite it. `LoginApiController` is the reference.
+An application which publishes its own push events keeps using `ApplicationEventPublisher` with
+`io.vanillabp.cockpit.gui.api.v1.GuiEvent`. Its constructor changed. It was
+`GuiEvent(source, targetGroups, event)`, and it is `GuiEvent(kindOfEntity, entityId, event)` now.
+The first value is the name of the event in the stream, for example `UserTask`. The cockpit no
+longer sends every event to every stream. For the kinds `UserTask` and `Workflow` it decides by
+the id, with the visibility of the list controllers above. An event of another kind, and an event
+without an id, still reaches every stream. An application which replaced the endpoint itself has to
+rewrite it. `LoginApiController` in the library is the reference.
+
+What the browser reads changed too. An element of the stream no longer has `targetGroups`, and it
+names `workflowModuleId`. `type` has the new value `RELOAD`, which tells the browser to load every
+list of that kind again. A stream ends when the sign-in expires. If the application brings its own
+user interface, the release notes of the `business-cockpit` repository say what it has to follow.
 
 `SseEmitter` behaves differently from a `Flux`, in ways which only show up while the
 application runs. Each open stream holds a request thread for as long as the browser keeps the
