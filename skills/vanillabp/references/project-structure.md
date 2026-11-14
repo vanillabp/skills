@@ -23,7 +23,8 @@ has to match the workflow module ID.
 
 ```
 <base-package>.<usecase>
-├── ApiController.java               <- driving adapter: HTTP calls in
+├── ApiController.java               <- driving adapter: HTTP calls in, implements the
+│                                       interface generated from the OpenAPI file
 ├── Service.java                     <- business code, never touches VanillaBP
 ├── Workflow.java                    <- outgoing: the application tells the process
 ├── WorkflowTaskHandler.java         <- incoming: the process tells the application
@@ -40,6 +41,26 @@ That is the layout of one use case of medium size. A large process is split by s
 user task gets a package of its own. Both are described under
 [rule 8](rules.md#8-one-primary-bpmn-process-per-workflow-aggregate). The classes keep their
 names and their roles in every one of those packages.
+
+## Every API is an OpenAPI file
+
+An API starts as an OpenAPI file. Its paths, parameters and answers are written there, and the
+build generates a Java interface from it with the `openapi-generator-maven-plugin`.
+`ApiController` implements that interface and holds the code of each call. It carries no path
+and no parameter annotation of its own, and no record for a request or an answer is written by
+hand.
+
+- An API which only people in a browser call, or only the module's own user interface:
+  `src/main/resources/openapi/<use-case>.yaml` in the module of the controller. Its tag is the
+  use case, so the interface is `LoanApprovalApi` in the package `<use case package>.api`.
+- An API with a Java client, such as a system around the application, its simulator or
+  another module: a Maven module `<name>-api` with the file and the submodules `client` (what the
+  caller uses) and `server` (the interface the other side implements). The adapter which calls
+  it is named after the system it talks to, not after the technology.
+
+The generators and their settings for both platforms are in
+[rule 7 of the blueprints' CONTRIBUTING.md](https://github.com/vanillabp-blueprints/blueprints/blob/main/CONTRIBUTING.md#rule-7-every-api-is-written-as-an-openapi-file).
+The blueprints `module-single` and `module-simulator` show both kinds.
 
 ## One class per direction
 
