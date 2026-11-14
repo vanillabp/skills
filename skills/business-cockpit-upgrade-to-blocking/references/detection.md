@@ -23,7 +23,7 @@ what a hit means. Use whatever tool is there. The patterns matter, not the comma
 | Reactive types | `grep -rn "Mono<\|Flux<" --include="*.java" .` | the headline number of the inventory. Count it before and after |
 | Exchange parameter | `grep -rn "ServerWebExchange" --include="*.java" .` | the generated interfaces no longer pass one |
 | Own controllers on generated interfaces | `grep -rn "implements .*Api\b" --include="*.java" .` | every signature is dictated by the regenerated interface |
-| Controllers extending the container | `grep -rn "extends Abstract.*GuiApiController" --include="*.java" .` | the abstract hook methods lose their `Mono` too, so overrides stop overriding silently until the class fails to compile |
+| Controllers extending the container | `grep -rn "extends Abstract.*GuiApiController" --include="*.java" .` | the abstract classes ask for one visibility now, and most old hooks are gone, see [web-layer.md](web-layer.md#controllers-extending-the-container) |
 | Server-sent events | `grep -rn "ServerSentEvent\|TEXT_EVENT_STREAM" --include="*.java" .` | the update endpoint is written with `SseEmitter` now |
 | Web configuration | `grep -rn "WebFluxConfigurer\|@EnableWebFlux\|WebFilter\|CorsWebFilter" --include="*.java" .` | each has a servlet counterpart, see [web-layer.md](web-layer.md) |
 | Reactive codecs | `grep -rn "JacksonJsonEncoder\|JacksonJsonDecoder\|ServerCodecConfigurer\|CodecCustomizer" --include="*.java" .` | the message converters take over, and a `JsonMapperBuilderCustomizer` is all that is left to declare |

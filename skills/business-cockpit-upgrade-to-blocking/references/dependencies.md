@@ -40,8 +40,9 @@ Java packages are unchanged, so imports stay as they are. The application class 
 longer carries `@SpringBootApplication` or a main method. The derived application's own class
 provides both, as it already did. The thinner runtime has two results worth attention. First,
 the concrete GUI controllers of the reference application are no longer on the classpath. So a
-derived application implements its own subclasses of the abstract controllers. Most already do,
-that is what the abstract classes are for. Second, the BPMS API must be configured (realm name
+derived application writes its own subclasses of the abstract controllers, one for each list its
+user interface calls. Without them the lists stay empty, see
+[web-layer.md](web-layer.md#the-concrete-list-controllers-stay-in-the-container). Second, the BPMS API must be configured (realm name
 and credentials), or the application fails at startup.
 
 ## API artifacts
