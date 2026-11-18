@@ -6,15 +6,25 @@ where the two disagree.
 
 ## Placeholders
 
-Every blueprint uses the same four placeholders. Replace all of them consistently. Most startup
-errors in generated applications come from replacing one and forgetting another.
+Every blueprint uses the same placeholders. Only the Maven coordinates differ, because they
+carry the name of the blueprint. Replace all of them consistently. Most startup errors in
+generated applications come from replacing one and forgetting another.
 
 | Placeholder | Meaning | Example |
 |---|---|---|
 | `blueprint.workflowmodule` | base package | `com.acme.orders` |
+| `blueprint.application` | package of the application, not above the workflow module | `com.acme.orders.application` |
 | `loanapproval` | use case identifier as a Java package | `shipment` |
-| `loan-approval` | use case identifier in kebab case: workflow module ID, resource directory, REST path | `shipment` |
+| `loan-approval` | use case identifier in kebab case: workflow module ID, resource directory, REST path, Maven module, `finalName` | `shipment` |
 | `loan_approval` | BPMN process ID | `shipment` |
+| `LoanApproval` | use case identifier in CamelCase: the start of class names, for example `LoanApprovalProperties`, `LoanApprovalIT` or the generated `LoanApprovalApi` | `Shipment` |
+| `LOAN_APPROVAL` | use case identifier in upper snake case: table and collection names | `SHIPMENT` |
+| `io.vanillabp.blueprint.<blueprint-id>-<platform>` | Maven groupId of every POM | `com.acme.orders` |
+| `<blueprint-id>` | Maven artifactId of the root POM | `orders` |
+
+The AGENTS.md of each blueprint lists the same placeholders with its own Maven coordinates.
+Words of the domain, such as `loanRequestId` or `loanApprovals`, are no placeholders. Rename
+them as your domain needs.
 
 The BPMN process ID in the model has to match the one used in the code. The resource directory
 has to match the workflow module ID.
@@ -51,12 +61,21 @@ and no parameter annotation of its own, and no record for a request or an answer
 hand.
 
 - An API which only people in a browser call, or only the module's own user interface:
-  `src/main/resources/openapi/<use-case>.yaml` in the module of the controller. Its tag is the
-  use case, so the interface is `LoanApprovalApi` in the package `<use case package>.api`.
+  `src/main/resources/<workflow-module-id>/openapi/<use-case>.yaml` in the module of the
+  controller, like every other resource of the module. Its tag is the use case, so the interface is `LoanApprovalApi` in the package `<use case package>.api`.
 - An API with a Java client, such as a system around the application, its simulator or
   another module: a Maven module `<name>-api` with the file and the submodules `client` (what the
   caller uses) and `server` (the interface the other side implements). The adapter which calls
   it is named after the system it talks to, not after the technology.
+
+A surrounding system is first a port: a Java interface the workflow module owns, which the
+business code calls. The blueprint `bpmn-service-task` shows it with `CreditRatingClient`, a
+`Local...` stand-in and a simulator in the tests. The port is not an API in the sense above and
+has no OpenAPI file. The OpenAPI module belongs behind it. Once the system is reached over HTTP,
+an adapter named after the system implements the port with the generated client. The blueprint
+`module-simulator` shows the whole way. If nobody can tell you the API of the system yet, for
+example because the BPMN only names it, keep the port with its stand-in and say so. Do not
+invent an OpenAPI file for a system nobody described.
 
 The generators and their settings for both platforms are in
 [rule 7 of the blueprints' CONTRIBUTING.md](https://github.com/vanillabp-blueprints/blueprints/blob/main/CONTRIBUTING.md#rule-7-every-api-is-written-as-an-openapi-file).
