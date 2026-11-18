@@ -46,6 +46,7 @@ model, and that is normal. Each is a delta on top of `module-single`.
 | `bpmn:IntermediateCatchEvent` with `bpmn:MessageEventDefinition` | `bpmn-message-correlation` |
 | `bpmn:IntermediateThrowEvent` | `module-interaction` |
 | `bpmn:IntermediateCatchEvent` with `bpmn:TimerEventDefinition` | `bpmn-timer` |
+| `bpmn:EventBasedGateway` | the blueprint of each event behind it, `bpmn-message-correlation` and `bpmn-timer` |
 | `bpmn:SignalEventDefinition` | `bpmn-signals` |
 | `bpmn:BoundaryEvent` | `bpmn-boundary-events`, with a timer `bpmn-timer` |
 | `bpmn:ErrorEventDefinition`, `bpmn:EscalationEventDefinition` | `bpmn-error-escalation` |

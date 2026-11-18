@@ -56,6 +56,21 @@ Collect the element types the model uses (`bpmn:UserTask`, `bpmn:BoundaryEvent`,
 `bpmn:MessageEventDefinition` and so on), together with the attributes set on them. This list
 selects the blueprints.
 
+A model you get from a business analyst often has no engine attributes at all. It names the
+tasks and the flows, but nothing in it names the task definition of a service task or the form
+of a user task, and its gateways have no conditions and no default flow. Such a model does not
+run yet. You add what is missing in step 5, in the copy of the model below
+`<module-id>/processes/<adapter-id>/`. A business deadline written as a literal, such as `P3D`
+on a timer, becomes an expression which reads the workflow aggregate, as the blueprint
+`bpmn-timer` shows. The `bpmn-*` blueprints show each attribute in their models. The wiki of
+each BPMS adapter lists in one table what VanillaBP expects of the model, for example
+[The BPMN model for Camunda 7](https://github.com/vanillabp/camunda7-adapter/wiki/Configuration#the-bpmn-model-for-camunda-7)
+and [The BPMN model for Camunda 8](https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#the-bpmn-model-for-camunda-8).
+
+Which flow of a gateway is the default is a business decision, not a technical one. Ask the
+user. If nobody can answer, pick the side which does not spend money or commit to anything, for
+example "reject" rather than "order". Then say in your answer which default you picked and why.
+
 ### Step 3: pick the blueprints
 
 Compare the element types with `covers.bpmn` in the catalogue, and choose for the target
@@ -81,8 +96,8 @@ existing project.
 have the same structure. So several deltas combine into one application.
 
 For a new application, clone the delivered repository of the base blueprint for your platform
-(`https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>`). Replace the
-placeholders, all four of them, consistently. For an existing application, follow the section
+(`https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>`). Replace all the
+placeholders its AGENTS.md lists, consistently. For an existing application, follow the section
 "Adding this blueprint to an existing project" in each blueprint's AGENTS.md. Keep the
 structure the project already has.
 
@@ -114,16 +129,25 @@ Steps 6 and 7 are the only reason to trust the result. Do not skip them.
 
 ## Operating the result
 
-Blueprints offer GET endpoints only, so you can walk through a process in a browser with no
-tooling at all. Keep that property in what you generate. At every wait state, log one complete,
-clickable URL for each possible next step.
+The path of every endpoint of a workflow module starts with the module id, then `api`:
+`/loan-approval/api/...`, never `/api/loan-approval/...`.
+
+Blueprints offer GET requests wherever a person tries the API by hand. So you can walk through a
+process in a browser with no tooling at all. Keep that property in what you generate. At every
+wait state, log one complete, clickable URL for each possible next step.
 
 ```
-Accept -> http://localhost:8080/api/loan-approval/{id}/assess-risk/{taskId}?riskIsAcceptable=true
-Deny   -> http://localhost:8080/api/loan-approval/{id}/assess-risk/{taskId}?riskIsAcceptable=false
+Accept -> http://localhost:8080/loan-approval/api/{id}/assess-risk/{taskId}?riskIsAcceptable=true
+Deny   -> http://localhost:8080/loan-approval/api/{id}/assess-risk/{taskId}?riskIsAcceptable=false
 ```
 
 Those logged URLs are also the cheapest way for you to see which state a workflow reached.
+
+GET is only for people who try the API by hand. An endpoint which a user interface calls to
+change something is POST. A form loads its data with GET, saves a draft with PUT and completes
+its user task with POST. So as soon as a user interface completes a task, that endpoint is POST,
+not GET. If the application has no user interface yet, log the `curl` command which stands in
+for one.
 
 ## When something is not covered
 
