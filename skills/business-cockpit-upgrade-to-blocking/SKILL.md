@@ -12,7 +12,7 @@ metadata:
 The Business Cockpit container was written in reactive style, on Spring WebFlux, Reactor and
 the reactive MongoDB driver. It has been rewritten in classic blocking style, on Spring MVC
 with virtual threads enabled. A customized business cockpit is a Spring Boot application of its
-own. It depends on `io.vanillabp.businesscockpit:container` (from `0.8.0` on: on the new
+own. It depends on `io.vanillabp.businesscockpit:container` (from `1.0.0` on: on the new
 library `io.vanillabp.businesscockpit:business-cockpit`, see
 [references/dependencies.md](references/dependencies.md)). It extends
 `io.vanillabp.cockpit.BusinessCockpitApplication` and overrides parts of it. So that rewrite
@@ -40,10 +40,19 @@ second upgrade to do along with this one, from Spring Boot 3 to 4 and from Java 
 begins. An application already on `0.4.x` has that part behind it. Only the step from reactive
 to blocking is left.
 
-The target is `0.8.0`, the first release built on the blocking runtime. The versions between
-`0.4.x` and `0.8.0` are kept for further releases of the reactive line. So a version in that
-range is still a starting point of this upgrade, not a target. Where the release notes of the
-`business-cockpit` repository and this skill disagree, the release notes win.
+The target is `1.0.0`, the first release built on the blocking runtime. Until it is out, build
+against the snapshot of `main`. The versions between `0.4.x` and `1.0.0` are kept for further
+releases of the reactive line. So a version in that range is still a starting point of this
+upgrade, not a target.
+
+`1.0.0` changes more than the runtime, and this skill covers only the step from reactive to
+blocking. The Java packages move, because `commons` is gone: its classes went to
+`business-cockpit-spring-boot-support` and to the library `business-cockpit`. The class names in
+this skill are written with the packages of `0.4.x`. Replace the beginning of each import with the
+table in
+[`commons` is gone](https://github.com/vanillabp/business-cockpit/blob/main/UPGRADE.md#commons-is-gone-support-and-the-library-module-take-its-classes)
+of `UPGRADE.md`. Then work through the rest of that file, which lists every other change up to
+`1.0.0`. Where `UPGRADE.md` and this skill disagree, `UPGRADE.md` wins.
 
 ## How to run this
 
@@ -162,10 +171,11 @@ request.
 
 The `business-cockpit` repository itself is the description of this release which decides.
 Above all
+[UPGRADE.md](https://github.com/vanillabp/business-cockpit/blob/main/UPGRADE.md)
+lists what an application has to change from `0.4.x` to `1.0.0`, and
 [container/README.md](https://github.com/vanillabp/business-cockpit/blob/main/container/README.md)
-says how a customized application is built. Also read the release notes of the version you
-upgrade to. Copy the patterns from the container's own `WebSecurityConfiguration`,
-`LoginApiController` and `MicroserviceProxyRegistry`. `development/simulator` and
+says how a customized application is built. Copy the patterns from the container's own
+`WebSecurityConfiguration`, `LoginApiController` and `MicroserviceProxyRegistry`. `development/simulator` and
 `development/dev-shell-simulator` in the same repository show the same JWT classes used from a
 workflow module.
 
