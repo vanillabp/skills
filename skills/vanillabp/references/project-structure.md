@@ -207,3 +207,38 @@ Adapter configuration lives at `vanillabp.adapters.<id>.*`, where the id names o
 instance. An application with one adapter dependency and one workflow module needs no
 `vanillabp.*` property at all. The classpath is the configuration, and everything else is
 derived from it.
+
+## What is different on Quarkus
+
+The structure, the class names and the VanillaBP annotations are the same on both platforms.
+Each blueprint exists as a Spring Boot twin and a Quarkus twin, and the twins differ only where
+the platform forces it. If you build on Quarkus, take the Quarkus twin of every blueprint and do
+not port code from a Spring Boot twin. These are the places where the platform shows:
+
+| Topic | Quarkus |
+|---|---|
+| Parent POM | imports `io.quarkus:quarkus-bom` and `io.vanillabp:vanillabp-bom` next to each other |
+| Workflow module | `io.vanillabp:vanillabp-quarkus-support` and the `jandex-maven-plugin`. Without the index, nothing finds the module's `@WorkflowService` class |
+| Application module | `io.vanillabp:vanillabp-quarkus-integration`, one adapter `io.vanillabp:<bpms>-adapter-quarkus` with its own version, `quarkus-config-yaml` for the YAML files, and the `quarkus-maven-plugin` with the goals `build`, `generate-code` and `generate-code-tests` |
+| Booting | no `Application` class, no auto-configuration and no `TestApplication`. Quarkus finds the beans of every indexed JAR on its own |
+| Beans | `@ApplicationScoped` and `@Inject`, not `@Service` or `@Component` |
+| Repository of the aggregate | a Panache repository, for example `PanacheRepositoryBase<Aggregate, String>` with `@ApplicationScoped`. Panache Mongo, an active record and Spring Data are recognised as well. For anything else write a bean which implements `AggregatePersistenceAware` |
+| Configuration of a module | an interface with `@ConfigMapping(prefix = "<module-id>")` and `@WithDefault`, not a class. The file `<module-id>/<module-id>.yaml` is loaded as defaults, and `application.yaml` wins over it |
+| Transactions | `jakarta.transaction.Transactional` with `dontRollbackOn = TaskException.class`, where Spring says `noRollbackFor` |
+| BPMS profile | the build filters it into `quarkus.config.profile.parent: "@bpms@"`. Filter only `application*.yaml`, with `@` as the only delimiter, so the `${...}` expressions of Quarkus stay as they are. Surefire and failsafe pass `quarkus.config.profile.parent=${bpms}` and `java.util.logging.manager=org.jboss.logmanager.LogManager` as system properties |
+| Tests | every test class carries `@QuarkusTest` itself. The base class `WorkflowModuleTest` has none, and inheriting the annotation does not make the test a bean. A test runs in the Quarkus profile `test`, and the BPMS profile is its parent. A stand-in for a surrounding system is a bean with `@Alternative`, `@Priority(1)` and `@ApplicationScoped`, where Spring uses `@Primary` |
+| Test of the workflow module | `vanillabp-quarkus-integration`, the adapter and a database in the test scope, and a test `application.yaml` with the database and nothing else |
+
+Two things catch people on Quarkus:
+
+- A Quarkus test resolves the application from the POM on its own. It knows the Maven profiles
+  you name with `-P` on the command line, but not those in `MAVEN_ARGS` or those switched on in
+  `settings.xml`. So name the BPMS profile and every profile your build needs with `-P`. The
+  test `theTestRunsOnTheBpmsOfTheMavenBuild` of the blueprints tells you when the two disagree.
+- If no database URL is configured, Quarkus Dev Services starts a database for you, for most
+  databases in a container. Configure the database in the main and in the test
+  `application.yaml`, as the blueprints do with H2, unless you want that.
+
+VanillaBP checks the wiring between BPMN and code while Quarkus builds the application, not
+only at startup. So most mistakes end `mvn verify` before any test runs. The message names the
+fix.

@@ -105,6 +105,11 @@ lives until the task is completed and belongs to nobody else.
 So give each user task its own package. It holds the classes which serve only that task, its
 `ApiController` among them.
 
+For one user task, or a few small ones, the flat structure of `module-single` is fine. All
+blueprints keep it, because each of them has only one or two user tasks. Split when a user task
+brings classes of its own, such as a form with a draft, an API of several calls or a table for
+its state.
+
 The blueprint which shows this comes with the Business Cockpit, and it does not exist yet. So
 treat this section as guidance, not as something you can copy from a repository.
 

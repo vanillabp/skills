@@ -29,7 +29,9 @@ state the process needs. There are no process variables.
 Find out these four. Ask the user where the project does not answer them:
 
 1. The platform, Spring Boot or Quarkus. Everything after this differs, and the two are never
-   mixed in one project.
+   mixed in one project. On Quarkus, read
+   [What is different on Quarkus](references/project-structure.md#what-is-different-on-quarkus)
+   before you write the first class.
 2. The BPMS: Camunda 7, Camunda 8 or the bpm-crafters Process-Engine-API.
 3. Whether this is a new application or an existing one to extend.
 4. The BPMN model. Without a model there is nothing to implement. So ask for the file instead
@@ -96,7 +98,9 @@ existing project.
 have the same structure. So several deltas combine into one application.
 
 For a new application, clone the delivered repository of the base blueprint for your platform
-(`https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>`). Replace all the
+(`https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>`). Take every delta from the
+twin of the same platform. A Spring Boot twin has an `Application` class, an auto-configuration
+and a `TestApplication`, and a Quarkus project needs none of them. Replace all the
 placeholders its AGENTS.md lists, consistently. For an existing application, follow the section
 "Adding this blueprint to an existing project" in each blueprint's AGENTS.md. Keep the
 structure the project already has.
@@ -111,6 +115,9 @@ blueprint. If you break one of them, a VanillaBP application stops working witho
 ```bash
 mvn verify
 ```
+
+Name every Maven profile the build needs with `-P` on the command line. A Quarkus test reads
+them only from there.
 
 Every blueprint ships an integration test which plays through its aspect. Keep that test and
 adapt it to the use case. Generated code which never ran is a guess.
