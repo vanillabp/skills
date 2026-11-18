@@ -55,7 +55,7 @@ extended them. Both change, and not only in their types.
 
 ### The concrete list controllers stay in the container
 
-From `0.8.0` on, the abstract classes are in the library `business-cockpit`. The five concrete
+From `1.0.0` on, the abstract classes are in the library `business-cockpit`. The five concrete
 controllers stayed in `container`, and a derived application no longer has them on its classpath.
 If the application relied on them, it starts, its user interface loads, and every list stays
 empty. Nothing in the log says why. So the survey has to answer, for each of these five, whether
@@ -134,8 +134,8 @@ What happens to the old hooks:
 
 Add `@Override` to every method you keep, before you start. Then a hook whose parameters changed
 fails to compile, instead of silently overriding nothing. Take the parameters from the class on the
-classpath, not from this file. They changed after `0.8.0` too, and the release notes of the
-`business-cockpit` repository list each change.
+classpath, not from this file. They changed in more ways up to `1.0.0`, and `UPGRADE.md` of the
+`business-cockpit` repository lists each change.
 
 The injected fields of those base classes change type as well: `ReactiveUserContext` becomes
 `UserContext`, described in [security.md](security.md).

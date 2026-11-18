@@ -2,7 +2,7 @@
 
 ## Runtime
 
-| | Container 0.3.x | Container 0.4.x | Container 0.8.0 (blocking) |
+| | Container 0.3.x | Container 0.4.x | Business Cockpit 1.0.0 (blocking) |
 |---|---|---|---|
 | Java | 17 | 21 | 21 |
 | Spring Boot | 3.0.x | 4.1.x | 4.1.x |
@@ -22,7 +22,7 @@ blocking remains.
 
 ## The container itself
 
-With `0.8.0` the former `container` module is split in two. The library `business-cockpit`
+With `1.0.0` the former `container` module is split in two. The library `business-cockpit`
 carries everything a derived application uses, and it cannot run on its own. The remaining
 `container` is the reference application you can run: a main class, the concrete GUI
 controllers, demo users of the `local` profile, and the application yamls. So a customized
@@ -35,10 +35,17 @@ business cockpit switches its dependency:
 </dependency>
 ```
 
-Java packages are unchanged, so imports stay as they are. The application class still extends
-`io.vanillabp.cockpit.BusinessCockpitApplication`. That class now lives in the library, and no
-longer carries `@SpringBootApplication` or a main method. The derived application's own class
-provides both, as it already did. The thinner runtime has two results worth attention. First,
+The Java packages change as well, because `commons` is gone. What a workflow module can use too
+went to `io.vanillabp.businesscockpit:business-cockpit-spring-boot-support`, which the library
+brings along, and what only the cockpit uses went to the library. The table in
+[`commons` is gone](https://github.com/vanillabp/business-cockpit/blob/main/UPGRADE.md#commons-is-gone-support-and-the-library-module-take-its-classes)
+of the cockpit's `UPGRADE.md` maps each old package to its new one. This skill names the classes
+with their packages of `0.4.x`, so apply that table to every import as well.
+
+The application class no longer extends `io.vanillabp.cockpit.BusinessCockpitApplication`. That
+class is deprecated and empty, and it goes away in a release after `1.0.0`. The derived
+application's own class carries `@SpringBootApplication` and the main method, as it already did.
+So drop the `extends`. The thinner runtime has two results worth attention. First,
 the concrete GUI controllers of the reference application are no longer on the classpath. So a
 derived application writes its own subclasses of the abstract controllers, one for each list its
 user interface calls. Without them the lists stay empty, see
@@ -79,8 +86,8 @@ The WebMVC gateway starter pulls in `spring-boot-starter-web` itself. So an appl
 declares the gateway does not need the web starter separately.
 
 `commons` used to depend on both the reactive and the blocking MongoDB starter, because it held
-both sets of classes side by side. Only the blocking one is left, and a derived application
-inherits that.
+both sets of classes side by side. The library `business-cockpit` depends on the blocking one
+only, and a derived application inherits that.
 
 ## What has to leave the classpath
 
