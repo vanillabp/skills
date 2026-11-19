@@ -33,10 +33,12 @@ in the root folder of the project. They tell you whether to plan the job or to g
 
 A job that needs more than one prompt never lives only in the chat. This holds for a new
 application, a new workflow module, a new BPMN scenario and an upgrade to a newer VanillaBP version
-alike. The plan lives in the project, in `plan/INDEX.md` and one file per story. Each story is small,
-covers one workflow module and one blueprint or one task, and has a check command that shows when
-it is done. Any agent, also a weaker model with a small context, can stop after any step and the
-next one goes on from the files.
+alike. The plan lives in the project, in `plan/INDEX.md` and one file per story. Each story is a
+small business slice: one thing the business can do, built through the model, the code and the
+tests at once. The first story runs one case from start to end on the simplest path, and each
+next story adds one special case. Each story has a check command that shows when it is done. Any
+agent, also a weaker model with a small context, can stop after any step and the next one goes on
+from the files.
 [references/working-in-stories.md](references/working-in-stories.md) has the procedure and the
 templates.
 
