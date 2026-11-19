@@ -16,6 +16,7 @@ or two files needs none.
 
 1. [The first step of every start: resume](#the-first-step-of-every-start-resume)
 1. [The files of the plan](#the-files-of-the-plan)
+1. [Stories are business slices](#stories-are-business-slices)
 1. [Planning a new application](#planning-a-new-application)
 1. [Planning an update](#planning-an-update)
 1. [Working on one story](#working-on-one-story)
@@ -103,40 +104,101 @@ Number the stories `S01`, `S02` and so on, in the order you will work on them. A
 in the plan only. It never goes into the code, the tests or the texts of the application, see
 [code-that-reads-like-prose.md](code-that-reads-like-prose.md#nothing-points-at-the-plan).
 
+## Stories are business slices
+
+A story is one thing the business can do. You build it through all layers at once: the BPMN
+model, the workflow aggregate, the service code, the user task endpoints, the simulated outside
+systems and the tests. A story is done when a user can do this thing in the running application,
+and an integration test proves it.
+
+Never build layer by layer. A plan such as "first the whole model, then all service tasks, then
+all user tasks, then the tests" runs for a long time before anything works, and nobody can say
+whether the process is right.
+
+Cut the stories from the inside out:
+
+1. **The core flow first.** Story 1 takes one case from the start to the end, on the simplest
+   path. Choose the path with the fewest elements on which the process still does its job, mostly
+   "everything goes well". It has no gateway, no deadline, no error and no cancelation.
+2. **One special case per story.** Each next story adds one thing that can differ from the simple
+   path: a rejection, a deadline, a cancelation, an escalation, an answer from a partner system.
+   Take first the special cases that happen often or cost the most when they go wrong.
+3. **Cross-cutting things last.** Demo scenarios, extra views and reports come after the process
+   is complete.
+
+Story 1 also brings the technical base, but only as much as it needs: the base blueprint of the
+chosen `module-*` structure and the persistence. Add nothing that only a later story uses. The
+files the base blueprint brings do not count toward the size of a story.
+
+The model you get has every element of every path. Story 1 works on a copy that holds only the
+elements of the simplest path. Each later story adds the elements of its special case from the
+full model. So the model in the project always runs, and every element in it has its code and its
+test. After the last special case, the model in the project has every element of the full model.
+
+The blueprints still show how each element is built. Name a blueprint in the story that needs it
+first, for example `bpmn-user-task` in the story that brings the first user task. A later story
+that needs the same blueprint again reads the code of the earlier story instead.
+
+### A worked example: a loan request
+
+The BPMN model: a customer sends a loan request. A service task gets the credit rating. A clerk
+assesses the risk in a user task. A gateway approves or rejects the request. A timer reminds the
+clerk after three days. The customer can withdraw the request at any time.
+
+| Story | Business slice                                       | Blueprints it names first                              |
+|-------|------------------------------------------------------|--------------------------------------------------------|
+| 1     | A loan request is approved, from start to end        | `module-single`, `bpmn-service-task`, `bpmn-user-task` |
+| 2     | The clerk rejects a loan request                     | `bpmn-gateways`                                        |
+| 3     | The clerk gets a reminder after three days           | `bpmn-timer`                                           |
+| 4     | The customer withdraws the request                   | `bpmn-message-correlation`                             |
+| 5     | Demo scenarios: one approved, one rejected, one late | none                                                   |
+| 6     | The process runs end to end                          | none                                                   |
+
+Story 1 has the service task "Retrieve credit rating", the user task "Assess risk" and the end
+event "Loan approved", and no gateway. The credit rating comes from a simulation of the outside
+system. Story 2 adds the gateway and the flow to "Loan rejected". Story 3 adds the timer to the
+user task. Each of them adds one integration test that walks through its case.
+
+Take the names of the blueprints from the catalogue, see
+[Step 1](../SKILL.md#step-1-read-the-catalogue). It may have changed since this page was written.
+
 ## Planning a new application
 
 Plan after you know the four answers of
 [Before you write anything](../SKILL.md#before-you-write-anything), and after steps 1 to 4 of the
 [Procedure](../SKILL.md#procedure). Then you know the blueprints and have read their `AGENTS.md`.
-The plan follows the blueprints: one story per workflow module and blueprint.
 
-1. **The base.** One story: clone the base blueprint of the chosen `module-*` structure for your
-   platform, replace every placeholder its `AGENTS.md` lists, and make its own integration test
-   pass. Check: `mvn -B verify -P<profiles>`.
-2. **The persistence.** One story when it is not the persistence of the base blueprint: apply the
-   `persistence-*` blueprint.
-3. **Per workflow module, per `bpmn-*` blueprint.** One story for each `bpmn-*` blueprint the model
-   of that module needs, in the order of the process. For example "loan-approval: user task
-   `assessRisk` after `bpmn-user-task`". The story copies the delta, adapts the integration test of
-   the blueprint to the use case, and adds the attributes of
-   [Step 2](../SKILL.md#step-2-parse-the-bpmn) to the model.
-4. **Per task with business logic.** One story for each service task or user task whose business
-   code is more than a call. The story writes the code in the service class and a test for it.
-5. **Per further workflow module.** Steps 3 and 4 again, for each module. With `module-multi` or
-   `module-interaction`, one more story for the way the modules work together.
-6. **The last story.** "The process runs end to end": run the whole build, start the application,
+1. **Find the simplest path.** Walk through the model from the start event to an end event, and
+   take at each gateway the flow on which everything goes well. Write down the elements on the
+   way. This is story 1.
+2. **List the special cases.** Every element that is not on the simplest path belongs to a
+   special case: the other flows of a gateway, a boundary event, a timer, a message that cancels.
+   Group the elements by the business case they serve, for example "rejection". Each group
+   becomes one story. Put them in the order of how often they happen.
+3. **Add the cross-cutting stories**, if the user wants them: demo scenarios, extra views.
+4. **The last story.** "The process runs end to end": run the whole build, start the application,
    walk through the process with the logged URLs, and fix every message of the startup validation,
-   as steps 6 and 7 of the [Procedure](../SKILL.md#procedure) say.
+   as steps 6 and 7 of the [Procedure](../SKILL.md#procedure) say. Check that the model in the
+   project now has every element of the model you got.
+5. **More than one workflow module.** With `module-multi` or `module-interaction`, a business slice
+   goes through every module its case touches. The story of the simplest path then brings the way
+   the modules work together. Name the blueprint of the structure in that story.
 
-Keep each story small. A story changes at most about ten files and adds or adapts one test. If a
-story is bigger, split it, for example one story per user task instead of one for all user tasks.
+Each story changes the model, the code and the tests together, and adds the attributes of
+[Step 2](../SKILL.md#step-2-parse-the-bpmn) to the elements it brings. A service task or user task
+whose business code is more than a call gets that code in the story that brings the task.
+
+Keep each story small. A story changes at most about ten files and adds or adapts one or two
+tests. If a story is bigger, split it along the business, not along the layers. For example, "the
+clerk rejects a request" and "the clerk asks the customer for more documents" are two stories,
+even if both start at the same gateway.
 
 A check must fail before the story is done and pass after it. A build that passes from the start
 proves nothing. So a check first tests that the new test file exists, then runs the build of the
 module:
 
 ```bash
-test -f loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/AssessRiskIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7
+test -f loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/RejectLoanIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7
 ```
 
 Write `plan/INDEX.md`, one story file per line and an empty `plan/QUESTIONS.md`. Use the
@@ -170,15 +232,19 @@ what it found. Only then does it write stories.
      reading. Its list of findings becomes the stories.
    - **A new BPMN scenario or a new workflow module.** Steps 1 to 4 of the
      [Procedure](../SKILL.md#procedure), as for a new application.
-3. Cut the work into stories, in this order:
+3. Cut the work into stories. Where the business changes, cut business slices. Where only the
+   technique changes, cut technical stories. Use this order:
    1. One story that raises the versions in the `pom.xml` files and nothing else. Check:
-      `mvn -B test-compile`. It may fail, then the next stories fix it.
+      `mvn -B test-compile`. It may fail, then the next stories fix it. A plain raise of the
+      version is a technical story. It changes nothing a user notices.
    2. One story per workflow module that adapts its code until it compiles and its tests pass.
       Check: `mvn -B -pl <module> -am verify -P<profiles>`.
    3. One story per configuration change, for example a moved key. Check: the build of the module,
       plus a `grep` that the old key is gone, for example
       `! grep -rn 'vanillabp.default-adapter' --include=*.yaml .`.
-   4. One story per new BPMN scenario, as for a new application.
+   4. Business slices for every change of the business, as in
+      [Stories are business slices](#stories-are-business-slices). A new special case is one
+      story. A new process starts with the story of its simplest path.
    5. The last story: the whole build and one start of the application with every profile it
       knows. Fix each message of the startup validation, as step 7 of the
       [Procedure](../SKILL.md#procedure) says.
@@ -207,7 +273,7 @@ These are the steps for one story. Do them in this order, and do not skip one.
 
    ```bash
    git add -A
-   git commit -m "S04 loan-approval: user task assessRisk"
+   git commit -m "S02 The clerk rejects a loan request"
    ```
 
 9. Take the next story: go back to step 6 of
@@ -257,52 +323,63 @@ Job: loan approval application, Spring Boot, Camunda 7, JPA
 Started: 2026-11-19
 Profiles: camunda7
 
-| Id  | Title                                            | Status      | Check command                                                                                                     |
-|-----|--------------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------|
-| S01 | Base from module-single, placeholders done       | done        | `mvn -B verify -Pcamunda7`                                                                                        |
-| S02 | loan-approval: service task retrieveCreditRating | in-progress | `test -f loan-approval/src/test/java/.../CreditRatingTest.java && mvn -B -pl loan-approval -am verify -Pcamunda7` |
-| S03 | loan-approval: user task assessRisk              | open        | `test -f loan-approval/src/test/java/.../AssessRiskIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7`     |
-| S04 | loan-approval: timer after bpmn-timer            | open        | `sh plan/checks/S04.sh`                                                                                           |
-| S05 | The process runs end to end                      | open        | `mvn -B verify -Pcamunda7`                                                                                        |
+| Id  | Title                                         | Status      | Check command                                                                                                   |
+|-----|-----------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------|
+| S01 | A loan request is approved, from start to end | done        | `test -f loan-approval/src/test/java/.../ApproveLoanIT.java && mvn -B verify -Pcamunda7`                        |
+| S02 | The clerk rejects a loan request              | in-progress | `test -f loan-approval/src/test/java/.../RejectLoanIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7`   |
+| S03 | The clerk gets a reminder after three days    | open        | `sh plan/checks/S03.sh`                                                                                         |
+| S04 | The customer withdraws the request            | open        | `test -f loan-approval/src/test/java/.../WithdrawLoanIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7` |
+| S05 | The process runs end to end                   | open        | `mvn -B verify -Pcamunda7`                                                                                      |
 ```
 
-Write the full path in place of `...`. For an update, the head also holds what step 1 of
-[Planning an update](#planning-an-update) found: the VanillaBP version before and after, the
-adapters and the workflow modules.
+Write the full path in place of `...`. Each title says what a user can do when the story is done.
+For an update, the head also holds what step 1 of [Planning an update](#planning-an-update) found:
+the VanillaBP version before and after, the adapters and the workflow modules.
 
-### A story file, plan/S03.md
+### A story file, plan/S02.md
 
 ```markdown
-# S03 loan-approval: user task assessRisk
+# S02 The clerk rejects a loan request
 
 Workflow module: loan-approval
-Blueprint: bpmn-user-task
-Depends on: S02
+Blueprints used first here: bpmn-gateways
+Depends on: S01
 
 ## Goal
 
-The process stops at the user task "Assess risk". The endpoint of the task completes it, and the
-process goes on along the flow the answer chooses.
+In the user task "Assess risk", the clerk can say that the risk is too high. Then the process
+ends at "Loan rejected" and the customer gets a letter of rejection.
+
+## Done when
+
+The test RejectLoanIT starts a loan request, completes "Assess risk" with "risk too high", and
+sees the process end at "Loan rejected". The test ApproveLoanIT of S01 still passes.
 
 ## Read first
 
-- AGENTS.md of the blueprint bpmn-user-task, section "Adding this blueprint to an existing project"
-- vanillabp skill, references/rules.md, section "User tasks get a package of their own"
+- plan/S01.md, section "Notes"
+- AGENTS.md of the blueprint bpmn-gateways, section "Adding this blueprint to an existing project"
+- vanillabp skill, SKILL.md, section "Step 2: parse the BPMN", the part about gateways
+- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/
 
 ## Files
 
 - loan-approval/src/main/resources/loan-approval/processes/camunda7/loan_approval.bpmn (change)
-- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/ (new package)
-- loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/AssessRiskIT.java (new)
+- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/ (change)
+- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/LoanApprovalService.java (change)
+- loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/RejectLoanIT.java (new)
 
 ## Steps
 
-- [ ] 1. Copy the integration test of bpmn-user-task to AssessRiskIT.java and rename it to the use
-      case. Run the check. It fails.
-- [ ] 2. Add the form key of the user task to the BPMN model.
-- [ ] 3. Copy the classes of the user task from the blueprint into the package assessrisk.
-- [ ] 4. Replace the placeholders in the copied classes.
-- [ ] 5. Run the check. It passes.
+- [ ] 1. Copy ApproveLoanIT.java to RejectLoanIT.java. Change it so that the clerk answers "risk
+      too high" and the test expects the end event "Loan rejected". Run the check. It fails.
+- [ ] 2. Add the field for the answer of the clerk to the workflow aggregate.
+- [ ] 3. Add the gateway "Risk acceptable?", the end event "Loan rejected" and the service task
+      "Send rejection" from the full model to the model of the project. Give the gateway its
+      conditions and its default flow.
+- [ ] 4. Add the endpoint parameter for the answer to the user task "Assess risk".
+- [ ] 5. Write the method of the service task "Send rejection" in LoanApprovalService.java.
+- [ ] 6. Run the check. It passes.
 
 ## Notes
 
@@ -312,12 +389,12 @@ process goes on along the flow the answer chooses.
 Write the steps so concrete that a weaker model can do each of them without thinking about the
 whole application. One step is one file or one test, not "implement the process".
 
-### A check script, plan/checks/S04.sh
+### A check script, plan/checks/S03.sh
 
 ```sh
 #!/bin/sh
 set -e
-test -f loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/ReminderTimerIT.java
+test -f loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/ReminderIT.java
 grep -q 'timeDuration' loan-approval/src/main/resources/loan-approval/processes/camunda7/loan_approval.bpmn
 mvn -B -pl loan-approval -am verify -Pcamunda7
 ```
@@ -327,7 +404,7 @@ mvn -B -pl loan-approval -am verify -Pcamunda7
 ```markdown
 ## ASK-003 Which flow of the gateway "Risk acceptable?" is the default?
 
-Story: S03
+Story: S02
 Date: 2026-11-19
 Default taken: "no", the flow which rejects the loan request.
 Why this default: it spends no money and commits to nothing.
