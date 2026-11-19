@@ -24,6 +24,26 @@ which BPMS adapter is on the classpath.
 A *workflow aggregate* is one stored entity per workflow instance. It holds every piece of
 state the process needs. There are no process variables.
 
+## Start here: resume
+
+Every start begins with the same step, also the first one and also when the user only says "go
+on": resume. Run the commands of
+[The first step of every start](references/working-in-stories.md#the-first-step-of-every-start-resume)
+in the root folder of the project. They tell you whether to plan the job or to go on with a story.
+
+A job that needs more than one prompt never lives only in the chat. This holds for a new
+application, a new workflow module, a new BPMN scenario and an upgrade to a newer VanillaBP version
+alike. The plan lives in the project, in `plan/INDEX.md` and one file per story. Each story is small,
+covers one workflow module and one blueprint or one task, and has a check command that shows when
+it is done. Any agent, also a weaker model with a small context, can stop after any step and the
+next one goes on from the files.
+[references/working-in-stories.md](references/working-in-stories.md) has the procedure and the
+templates.
+
+The code you write explains itself: names read like small sentences, comments say why, and the
+English is plain. [references/code-that-reads-like-prose.md](references/code-that-reads-like-prose.md)
+has the rules and the checks you run before each commit.
+
 ## Before you write anything
 
 Find out these four. Ask the user where the project does not answer them:
@@ -38,6 +58,10 @@ Find out these four. Ask the user where the project does not answer them:
    of inventing a process.
 
 ## Procedure
+
+Steps 1 to 4 are the planning. After step 4, write the plan as
+[Planning a new application](references/working-in-stories.md#planning-a-new-application) says.
+Steps 5 to 7 then run once per story, each story with its own check command.
 
 ### Step 1: read the catalogue
 
@@ -181,4 +205,5 @@ it. For work on the cockpit side itself, not only reading an error from it, use 
 `business-cockpit`.
 
 Upgrading an application from VanillaBP 1 is a different job with its own skill,
-`vanillabp-upgrade-v1-to-v2`.
+`vanillabp-upgrade-v1-to-v2`. Plan it in stories all the same, as
+[Planning an update](references/working-in-stories.md#planning-an-update) says.
