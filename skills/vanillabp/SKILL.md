@@ -68,15 +68,18 @@ Steps 5 to 7 then run once per story, each story with its own check command.
 ### Step 1: read the catalogue
 
 The blueprints are the reference implementations: one small application you can run, per
-aspect. A catalogue for machines lists them. Fetch both files:
+aspect. A catalogue for machines lists them,
+[blueprints.yaml](https://github.com/vanillabp-blueprints/.github/blob/main/blueprints.yaml).
+Fetch both files in their raw form:
 
 - `https://raw.githubusercontent.com/vanillabp-blueprints/.github/main/blueprints.yaml`
 - `https://raw.githubusercontent.com/vanillabp-blueprints/.github/main/AGENTS.md`
 
-The catalogue decides, and it changes as blueprints are added. Where it disagrees with anything
-in this skill, the catalogue wins. If you cannot reach the network, work from
-[references/catalogue.md](references/catalogue.md), an older copy of the same index. Say that
-you did.
+The catalogue is the only list of blueprints. It grows as blueprints are added, and this skill
+keeps no copy of it, so a new blueprint is used the day it is delivered. Where the catalogue
+disagrees with anything in this skill, the catalogue wins. If you cannot fetch it, do not pick
+blueprints from memory: ask the user for the file or for network access.
+[references/catalogue.md](references/catalogue.md) explains what its fields mean.
 
 ### Step 2: parse the BPMN
 
@@ -101,16 +104,32 @@ example "reject" rather than "order". Then say in your answer which default you 
 
 ### Step 3: pick the blueprints
 
-Compare the element types with `covers.bpmn` in the catalogue, and choose for the target
-platform:
+Go through EVERY entry of the catalogue, not only the ones whose name looks right, and decide
+for each one: take it or leave it out. Leave an entry out only for a reason you can name:
 
-- one workflow module structure from `module-*`, starting at `module-single`,
-- one persistence from `persistence-*`, JPA unless the user says otherwise,
-- every `bpmn-*` scenario the model requires.
+- the model or the user's request does not need it. For a `bpmn-*` entry, compare `covers.bpmn`
+  with the element types of step 2. Some entries cover no element type at all, for example
+  versioning or a driver which plays through the process during development. Decide those from
+  what the user wants to build, not from the model;
+- its `platforms.<platform>.status` is not `available`. Somebody works on a `planned` entry. A
+  `not-applicable` entry names the reason why that platform cannot have it. Do not port it
+  yourself;
+- you took another entry of the same `choose_one` group (see below);
+- the user said no.
 
-You may only use an entry whose `platforms.<platform>.status` is `available`. Somebody works on
-a `planned` entry. A `not-applicable` entry names the reason why that platform cannot have it.
-So pick a different blueprint instead of porting it yourself.
+Entries with the same `choose_one` value are alternatives: take at most one of each group. From
+`module-structure` take exactly one, starting at `module-single`. Taking none of another group
+means the default which `module-single` already shows, for example JPA with a repository when
+you take nothing from `aggregate-storage`. The schema of the catalogue says per group what
+taking none means. An entry without `choose_one` is an addition. Take it on top of the others
+when it applies.
+
+If you cannot tell whether an entry applies, ask the user. If nobody can answer, take the
+cheaper choice and say which one you took.
+
+Write the result as a table into the plan, section `Blueprints` of `plan/INDEX.md`: every entry
+of the catalogue, taken or left out, and the reason. The user sees what was left out and can object, and a blueprint added
+to the catalogue later cannot slip through unnoticed.
 
 ### Step 4: read the AGENTS.md of each chosen blueprint
 
