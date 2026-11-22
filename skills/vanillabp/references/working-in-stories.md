@@ -379,6 +379,8 @@ Read: AGENTS.md of the organisation and blueprints.yaml (2026-11-19), AGENTS.md 
 Taken from module-process-driver, the deepest taken blueprint of the chain of `base` fields.
 
     application/                             depends on the workflow module and the adapters
+    loan-approval/gui-api/client/            the GUI API, used by the test driver
+    loan-approval/gui-api/server/            the GUI API, implemented by the workflow module
     loan-approval/workflow-module/           depends on the ports only
     loan-approval/test-driver/               uses the client of the GUI API and of the simulator
     external-systems/credit-rating/port/
@@ -506,6 +508,8 @@ fail() { echo "structure: $1"; exit 1; }
 
 for module in \
     application \
+    loan-approval/gui-api/client \
+    loan-approval/gui-api/server \
     loan-approval/workflow-module \
     loan-approval/test-driver \
     external-systems/credit-rating/port \
