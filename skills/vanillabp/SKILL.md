@@ -104,16 +104,33 @@ example "reject" rather than "order". Then say in your answer which default you 
 
 ### Step 3: pick the blueprints
 
-Compare the element types with `covers.bpmn` in the catalogue, and choose for the target
-platform:
+Go through EVERY entry of the catalogue, not only the ones whose name looks right, and decide
+for each one: take it or leave it out. Leave an entry out only for a reason you can name:
 
-- one workflow module structure from `module-*`, starting at `module-single`,
-- one persistence from `persistence-*`, JPA unless the user says otherwise,
-- every `bpmn-*` scenario the model requires.
+- the model or the user's request does not need it. For a `bpmn-*` entry, compare `covers.bpmn`
+  with the element types of step 2. Some entries cover no element type at all, for example
+  versioning or a driver which plays through the process during development. Decide those from
+  what the user wants to build, not from the model;
+- its `platforms.<platform>.status` is not `available`. Somebody works on a `planned` entry. A
+  `not-applicable` entry names the reason why that platform cannot have it. Do not port it
+  yourself;
+- you took another entry of the same `choose_one` group (see below);
+- the user said no.
 
-You may only use an entry whose `platforms.<platform>.status` is `available`. Somebody works on
-a `planned` entry. A `not-applicable` entry names the reason why that platform cannot have it.
-So pick a different blueprint instead of porting it yourself.
+Entries with the same `choose_one` value are alternatives: take exactly one of each group. A
+workflow module structure starts at `module-single`, and the persistence is JPA unless the user
+says otherwise. An entry without `choose_one` is an addition. Take it on top of the others when
+it applies. If the catalogue has no `choose_one` yet, treat the module structures
+(`module-single`, `module-multi`, `module-standalone`) and the ways to store an aggregate
+(JPA, `persistence-mongodb`, `persistence-custom`, `persistence-active-record`) as the two
+groups.
+
+If you cannot tell whether an entry applies, ask the user. If nobody can answer, take the
+cheaper choice and say which one you took.
+
+Write the result as a table into the plan, section `Blueprints` of `plan/INDEX.md`: every entry
+of the catalogue, taken or left out, and the reason. The user sees what was left out and can object, and a blueprint added
+to the catalogue later cannot slip through unnoticed.
 
 ### Step 4: read the AGENTS.md of each chosen blueprint
 

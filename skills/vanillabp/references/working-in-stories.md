@@ -323,6 +323,19 @@ Job: loan approval application, Spring Boot, Camunda 7, JPA
 Started: 2026-11-19
 Profiles: camunda7
 
+## Blueprints
+
+| Blueprint             | Taken | Reason                                                      |
+|-----------------------|-------|-------------------------------------------------------------|
+| module-single         | yes   | one workflow module                                         |
+| module-multi          | no    | `choose_one`: module-single taken                           |
+| module-process-driver | yes   | the user wants to play through the process while developing |
+| persistence-mongodb   | no    | `choose_one`: JPA taken                                     |
+| bpmn-timer            | yes   | the model has a boundary timer on "Assess risk"             |
+| bpmn-signals          | no    | the model has no signal                                     |
+
+## Stories
+
 | Id  | Title                                         | Status      | Check command                                                                                                   |
 |-----|-----------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------|
 | S01 | A loan request is approved, from start to end | done        | `test -f loan-approval/src/test/java/.../ApproveLoanIT.java && mvn -B verify -Pcamunda7`                        |
@@ -332,7 +345,9 @@ Profiles: camunda7
 | S05 | The process runs end to end                   | open        | `mvn -B verify -Pcamunda7`                                                                                      |
 ```
 
-Write the full path in place of `...`. Each title says what a user can do when the story is done.
+The section `Blueprints` lists every entry of the catalogue, taken or left out, with the reason, as
+[Step 3](../SKILL.md#step-3-pick-the-blueprints) says. The example shows only some rows. Write the
+full path in place of `...`. Each title says what a user can do when the story is done.
 For an update, the head also holds what step 1 of [Planning an update](#planning-an-update) found:
 the VanillaBP version before and after, the adapters and the workflow modules.
 

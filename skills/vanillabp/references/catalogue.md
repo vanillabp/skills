@@ -35,6 +35,9 @@ memory. Ask the user to give you the file, or to let you reach the network.
 - `covers.spi`: the SPI members the blueprint uses.
 - `base`: the blueprint it builds on. Most entries build on `module-single`.
 - `composes_with`: the blueprints it combines with.
+- `choose_one`: the group of alternatives the entry belongs to, for example the workflow module
+  structure or the way an aggregate is stored. Take exactly one entry of each group. An entry
+  without it is an addition, which you take on top when it applies.
 - `bpms`: the engines the blueprint is built and tested against.
 - `docs`: the documentation it links.
 - `platforms.<platform>`: per platform the `status`, the repository and the URL of its
