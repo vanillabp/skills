@@ -75,6 +75,9 @@ delivered repository all the same, because it may have changed:
 │                                        adapter and, in the Maven profile test-driver only,
 │                                        the test driver
 ├── <use-case>/
+│   ├── gui-api/                       the OpenAPI file of the GUI API
+│   │   ├── client/                    generated, used by the test driver
+│   │   └── server/                    generated, implemented by the workflow module
 │   ├── workflow-module/               the workflow module. It knows only the ports
 │   └── test-driver/                   plays the users through the GUI API; production never
 │                                        pulls it
@@ -119,7 +122,12 @@ Where the file lives depends on who calls the API:
   controller, like every other resource of the module. Its tag is the use case, so the interface
   is `LoanApprovalApi` in the package `<use case package>.api`. The user interface generates its
   TypeScript client from the same file.
-- Any Java code, such as a system around the application, the simulator, the test driver or
+- The GUI API of a workflow module which a Java client in the project calls as well, for example
+  the test driver: a Maven module `<use-case>/gui-api` next to the workflow module, with the file
+  and the submodules `client` and `server`. The workflow module depends on `server`, the test
+  driver on `client`. A test of the module itself is no such caller. It generates a client of its
+  own in the test scope.
+- Any other API with a Java caller, such as a system around the application, the simulator or
   another module: a Maven module `<name>-api` with the file and two submodules, `client` and
   `server`. Each of them generates its classes from the file.
 

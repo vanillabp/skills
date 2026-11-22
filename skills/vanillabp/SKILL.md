@@ -174,7 +174,8 @@ the first class.
 
 Every API is API-first. An OpenAPI file describes it, and the build generates the code on both
 sides, in Java and in the TypeScript of a user interface. Nobody writes a REST client by hand.
-Each API with a Java caller gets a module `<name>-api` with a `client` and a `server` module.
+Each API with a Java caller gets a module with a `client` and a `server` module:
+`<use-case>/gui-api` for the GUI API of a workflow module, `<name>-api` for any other API.
 Client and server are seen from the caller: the test driver uses the client of the GUI API, and
 the workflow module implements its server. For a surrounding system, the simulator implements the
 server, and the adapter of the port uses the client. A port is named after what it is for, such
