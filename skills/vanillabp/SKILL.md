@@ -117,13 +117,12 @@ for each one: take it or leave it out. Leave an entry out only for a reason you 
 - you took another entry of the same `choose_one` group (see below);
 - the user said no.
 
-Entries with the same `choose_one` value are alternatives: take exactly one of each group. A
-workflow module structure starts at `module-single`, and the persistence is JPA unless the user
-says otherwise. An entry without `choose_one` is an addition. Take it on top of the others when
-it applies. If the catalogue has no `choose_one` yet, treat the module structures
-(`module-single`, `module-multi`, `module-standalone`) and the ways to store an aggregate
-(JPA, `persistence-mongodb`, `persistence-custom`, `persistence-active-record`) as the two
-groups.
+Entries with the same `choose_one` value are alternatives: take at most one of each group. From
+`module-structure` take exactly one, starting at `module-single`. Taking none of another group
+means the default which `module-single` already shows, for example JPA with a repository when
+you take nothing from `aggregate-storage`. The schema of the catalogue says per group what
+taking none means. An entry without `choose_one` is an addition. Take it on top of the others
+when it applies.
 
 If you cannot tell whether an entry applies, ask the user. If nobody can answer, take the
 cheaper choice and say which one you took.

@@ -328,9 +328,9 @@ Profiles: camunda7
 | Blueprint             | Taken | Reason                                                      |
 |-----------------------|-------|-------------------------------------------------------------|
 | module-single         | yes   | one workflow module                                         |
-| module-multi          | no    | `choose_one`: module-single taken                           |
+| module-multi          | no    | `module-structure`: module-single taken                     |
 | module-process-driver | yes   | the user wants to play through the process while developing |
-| persistence-mongodb   | no    | `choose_one`: JPA taken                                     |
+| persistence-mongodb   | no    | `aggregate-storage`: JPA of module-single is enough         |
 | bpmn-timer            | yes   | the model has a boundary timer on "Assess risk"             |
 | bpmn-signals          | no    | the model has no signal                                     |
 
