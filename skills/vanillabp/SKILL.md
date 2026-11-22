@@ -68,15 +68,18 @@ Steps 5 to 7 then run once per story, each story with its own check command.
 ### Step 1: read the catalogue
 
 The blueprints are the reference implementations: one small application you can run, per
-aspect. A catalogue for machines lists them. Fetch both files:
+aspect. A catalogue for machines lists them,
+[blueprints.yaml](https://github.com/vanillabp-blueprints/.github/blob/main/blueprints.yaml).
+Fetch both files in their raw form:
 
 - `https://raw.githubusercontent.com/vanillabp-blueprints/.github/main/blueprints.yaml`
 - `https://raw.githubusercontent.com/vanillabp-blueprints/.github/main/AGENTS.md`
 
-The catalogue decides, and it changes as blueprints are added. Where it disagrees with anything
-in this skill, the catalogue wins. If you cannot reach the network, work from
-[references/catalogue.md](references/catalogue.md), an older copy of the same index. Say that
-you did.
+The catalogue is the only list of blueprints. It grows as blueprints are added, and this skill
+keeps no copy of it, so a new blueprint is used the day it is delivered. Where the catalogue
+disagrees with anything in this skill, the catalogue wins. If you cannot fetch it, do not pick
+blueprints from memory: ask the user for the file or for network access.
+[references/catalogue.md](references/catalogue.md) explains what its fields mean.
 
 ### Step 2: parse the BPMN
 
