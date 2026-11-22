@@ -81,6 +81,11 @@ disagrees with anything in this skill, the catalogue wins. If you cannot fetch i
 blueprints from memory: ask the user for the file or for network access.
 [references/catalogue.md](references/catalogue.md) explains what its fields mean.
 
+Read the `AGENTS.md` in full. It holds the procedure, the reference structure and the list
+"Never do this", which holds for every blueprint. This step is a gate: the head of
+`plan/INDEX.md` says that you read both files, and every story lists the `AGENTS.md` under
+`Read first`. See the [template](references/working-in-stories.md#planindexmd).
+
 ### Step 2: parse the BPMN
 
 Collect the element types the model uses (`bpmn:UserTask`, `bpmn:BoundaryEvent`,
@@ -113,7 +118,9 @@ for each one: take it or leave it out. Leave an entry out only for a reason you 
   what the user wants to build, not from the model;
 - its `platforms.<platform>.status` is not `available`. Somebody works on a `planned` entry. A
   `not-applicable` entry names the reason why that platform cannot have it. Do not port it
-  yourself;
+  yourself. For a frontend, an entry whose id ends in `-frontend`, `<platform>` is the UI
+  framework of the job (`vue`, `react` or `angular`), not Spring Boot or Quarkus. Its
+  `not-applicable` for `springboot` and `quarkus` is expected and no reason to leave it out;
 - you took another entry of the same `choose_one` group (see below);
 - the user said no.
 
@@ -137,14 +144,25 @@ Every blueprint repository has one. The catalogue links it as `platforms.<platfo
 It names the placeholders, the files which carry the aspect, and the steps to add it to an
 existing project.
 
+Then write down the target layout of the project. The taken `module-*` blueprints decide the
+Maven modules: ports and adapters in modules of their own, an `<name>-api` module per API, the
+simulator, the test driver, one module per workflow module. Take the layout of the taken
+blueprint which is deepest in the chain of `base` fields, and write it as a tree into the section
+`Structure` of `plan/INDEX.md`.
+[The Maven layout comes from the `module-*` blueprints](references/project-structure.md#the-maven-layout-comes-from-the-module--blueprints)
+shows the tree of `module-process-driver`.
+
 ### Step 5: apply the deltas
 
-`module-single` is the base, and every `bpmn-*` blueprint is a delta on top of it. They all
-have the same structure. So several deltas combine into one application.
+The blueprint which gives the layout is the base. That is `module-single`, unless you took a
+`module-*` blueprint which builds on it, such as `module-simulator` or `module-process-driver`.
+Every `bpmn-*` blueprint is a delta on top of the base. They all have the same structure. So
+several deltas combine into one application.
 
 For a new application, clone the delivered repository of the base blueprint for your platform
 (`https://github.com/vanillabp-blueprints/<blueprint-id>-<platform>`). Take every delta from the
-twin of the same platform. A Spring Boot twin has an `Application` class, an auto-configuration
+twin of the same platform. Keep every Maven module of the base, also the ones your first story
+does not fill yet. A Spring Boot twin has an `Application` class, an auto-configuration
 and a `TestApplication`, and a Quarkus project needs none of them. Replace all the
 placeholders its AGENTS.md lists, consistently. For an existing application, follow the section
 "Adding this blueprint to an existing project" in each blueprint's AGENTS.md. Keep the
@@ -152,7 +170,17 @@ structure the project already has.
 
 [references/project-structure.md](references/project-structure.md) has the structure every
 blueprint uses, the placeholders and the layout of the configuration. Read it before you write
-the first class. [references/rules.md](references/rules.md) has the rules which hold for every
+the first class.
+
+Every API is API-first. An OpenAPI file describes it, and the build generates the code on both
+sides, in Java and in the TypeScript of a user interface. Nobody writes a REST client by hand.
+Each API with a Java caller gets a module `<name>-api` with a `client` and a `server` module.
+Client and server are seen from the caller: the test driver uses the client of the GUI API, and
+the workflow module implements its server. For a surrounding system, the simulator implements the
+server, and the adapter of the port uses the client. A port is named after what it is for, such
+as `e-signature`, and its adapter after the system, such as `sign-now`.
+[Every API is an OpenAPI file](references/project-structure.md#every-api-is-an-openapi-file-and-all-code-is-generated-from-it)
+has the details, callbacks included. [references/rules.md](references/rules.md) has the rules which hold for every
 blueprint. If you break one of them, a VanillaBP application stops working without a word.
 
 ### Step 6: verify by running it

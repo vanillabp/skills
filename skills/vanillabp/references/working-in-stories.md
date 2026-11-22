@@ -53,7 +53,7 @@ does not exist yet, ask the user where it goes.
    ```
 
 4. If there is one, run its check command from the column `Check command`:
-   - The check passes: the work is done and only the end of the story is missing. Do steps 6 to 9
+   - The check passes: the work is done and only the end of the story is missing. Do steps 6 to 10
      of [Working on one story](#working-on-one-story).
    - The check fails: open the story file `plan/<id>.md`. Read its section `Notes` and the steps
      that have no tick yet. Go on with the first step without a tick.
@@ -85,12 +85,14 @@ fails, I go on with step 3 of plan/S05.md."
 All files of the plan are in the folder `plan/` at the root of the project. They are committed like
 the code.
 
-| File                  | What it holds                                                        |
-|-----------------------|----------------------------------------------------------------------|
-| `plan/INDEX.md`       | one line per story: id, title, status, check command                 |
-| `plan/<id>.md`        | one file per story: goal, what to read, files, steps, notes          |
-| `plan/QUESTIONS.md`   | the questions that came up, each with the default you took           |
-| `plan/checks/<id>.sh` | only where a check command does not fit into the table, see below    |
+| File                       | What it holds                                                     |
+|----------------------------|-------------------------------------------------------------------|
+| `plan/INDEX.md`            | one line per story: id, title, status, check command              |
+| `plan/<id>.md`             | one file per story: goal, what to read, files, steps, notes       |
+| `plan/QUESTIONS.md`        | the questions that came up, each with the default you took        |
+| `plan/checks/<id>.sh`      | only where a check command does not fit into the table, see below |
+| `plan/checks/structure.sh` | the check of the layout, which every check command calls          |
+| `plan/checks/plan-lint.sh` | the check of the plan itself, run before the plan is committed    |
 
 The status of a story is one of three words: `open`, `in-progress` or `done`. `plan/INDEX.md` is the
 only place that holds the status. Git holds the history: every story ends with one commit that
@@ -123,12 +125,19 @@ Cut the stories from the inside out:
 2. **One special case per story.** Each next story adds one thing that can differ from the simple
    path: a rejection, a deadline, a cancelation, an escalation, an answer from a partner system.
    Take first the special cases that happen often or cost the most when they go wrong.
-3. **Cross-cutting things last.** Demo scenarios, extra views and reports come after the process
-   is complete.
+3. **Extra views and reports last.** They come after the process is complete.
 
-Story 1 also brings the technical base, but only as much as it needs: the base blueprint of the
-chosen `module-*` structure and the persistence. Add nothing that only a later story uses. The
-files the base blueprint brings do not count toward the size of a story.
+A process driver and a simulator are no story of their own, and never the last one. They grow
+with the process. Each story extends them for its own case: the driver gets the process state the
+story reaches and the steps which lead there, and the simulator answers for every surrounding
+system the story brings. This is part of the `Done when` of each story.
+
+Story 1 also brings the technical base: the whole Maven layout of the section `Structure` in
+`plan/INDEX.md`, and the persistence. It builds every module of that tree, also the ones which
+stay nearly empty at first, such as a port with one method or a test driver with one step. The
+layout is fixed in story 1, because every later story builds on it. Inside the modules, add
+nothing that only a later story uses. The files the base blueprint brings do not count toward the
+size of a story.
 
 The model you get has every element of every path. Story 1 works on a copy that holds only the
 elements of the simplest path. Each later story adds the elements of its special case from the
@@ -139,25 +148,33 @@ The blueprints still show how each element is built. Name a blueprint in the sto
 first, for example `bpmn-user-task` in the story that brings the first user task. A later story
 that needs the same blueprint again reads the code of the earlier story instead.
 
+Every blueprint the plan takes appears in exactly one story, under `Blueprints used first here`.
+A taken blueprint which no story names is never built. The check
+[plan/checks/plan-lint.sh](#a-plan-check-planchecksplan-lintsh) finds it.
+
 ### A worked example: a loan request
 
 The BPMN model: a customer sends a loan request. A service task gets the credit rating. A clerk
 assesses the risk in a user task. A gateway approves or rejects the request. A timer reminds the
-clerk after three days. The customer can withdraw the request at any time.
+clerk after three days. The customer can withdraw the request at any time. The user wants a
+process driver, to bring a case to any point of the process while developing.
 
-| Story | Business slice                                       | Blueprints it names first                              |
-|-------|------------------------------------------------------|--------------------------------------------------------|
-| 1     | A loan request is approved, from start to end        | `module-single`, `bpmn-service-task`, `bpmn-user-task` |
-| 2     | The clerk rejects a loan request                     | `bpmn-gateways`                                        |
-| 3     | The clerk gets a reminder after three days           | `bpmn-timer`                                           |
-| 4     | The customer withdraws the request                   | `bpmn-message-correlation`                             |
-| 5     | Demo scenarios: one approved, one rejected, one late | none                                                   |
-| 6     | The process runs end to end                          | none                                                   |
+| Story | Business slice                                | Blueprints it names first                                                                           |
+|-------|-----------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| 1     | A loan request is approved, from start to end | `module-single`, `module-simulator`, `module-process-driver`, `bpmn-service-task`, `bpmn-user-task` |
+| 2     | The clerk rejects a loan request              | `bpmn-gateways`                                                                                     |
+| 3     | The clerk gets a reminder after three days    | `bpmn-timer`                                                                                        |
+| 4     | The customer withdraws the request            | `bpmn-message-correlation`                                                                          |
+| 5     | The process runs end to end                   | none                                                                                                |
 
-Story 1 has the service task "Retrieve credit rating", the user task "Assess risk" and the end
-event "Loan approved", and no gateway. The credit rating comes from a simulation of the outside
-system. Story 2 adds the gateway and the flow to "Loan rejected". Story 3 adds the timer to the
-user task. Each of them adds one integration test that walks through its case.
+Story 1 builds the whole layout of `module-process-driver`: the workflow module, the test driver,
+the port `credit-rating` with its adapter and its `credit-rating-api` module, and the simulator.
+It has the service task "Retrieve credit rating", the user task "Assess risk" and the end event
+"Loan approved", and no gateway. The simulator answers the credit rating. The driver knows the
+states "loan requested", "risk assessment opened" and "loan approved". Story 2 adds the gateway
+and the flow to "Loan rejected", and the driver gets the state "loan rejected". Story 3 adds the
+timer to the user task. Each of them adds one integration test that walks through its case, and
+extends the driver and the simulator for it.
 
 Take the names of the blueprints from the catalogue, see
 [Step 1](../SKILL.md#step-1-read-the-catalogue). It may have changed since this page was written.
@@ -168,25 +185,35 @@ Plan after you know the four answers of
 [Before you write anything](../SKILL.md#before-you-write-anything), and after steps 1 to 4 of the
 [Procedure](../SKILL.md#procedure). Then you know the blueprints and have read their `AGENTS.md`.
 
-1. **Find the simplest path.** Walk through the model from the start event to an end event, and
+1. **Write down the structure.** Write the target layout as a tree into the section `Structure`
+   of `plan/INDEX.md`, as [Step 4](../SKILL.md#step-4-read-the-agentsmd-of-each-chosen-blueprint)
+   says. Story 1 builds all of it.
+2. **Find the simplest path.** Walk through the model from the start event to an end event, and
    take at each gateway the flow on which everything goes well. Write down the elements on the
    way. This is story 1.
-2. **List the special cases.** Every element that is not on the simplest path belongs to a
+3. **List the special cases.** Every element that is not on the simplest path belongs to a
    special case: the other flows of a gateway, a boundary event, a timer, a message that cancels.
    Group the elements by the business case they serve, for example "rejection". Each group
-   becomes one story. Put them in the order of how often they happen.
-3. **Add the cross-cutting stories**, if the user wants them: demo scenarios, extra views.
-4. **The last story.** "The process runs end to end": run the whole build, start the application,
+   becomes one story. Put them in the order of how often they happen. If you took a process
+   driver or a simulator, each of these stories extends them for its case.
+4. **Add the stories for extra views and reports**, if the user wants them.
+5. **The last story.** "The process runs end to end": run the whole build, start the application,
    walk through the process with the logged URLs, and fix every message of the startup validation,
    as steps 6 and 7 of the [Procedure](../SKILL.md#procedure) say. Check that the model in the
    project now has every element of the model you got.
-5. **More than one workflow module.** With `module-multi` or `module-interaction`, a business slice
+6. **More than one workflow module.** With `module-multi` or `module-interaction`, a business slice
    goes through every module its case touches. The story of the simplest path then brings the way
    the modules work together. Name the blueprint of the structure in that story.
+7. **Link blueprints and stories.** Put every blueprint with `Taken: yes` into exactly one story,
+   under `Blueprints used first here`. The `module-*` blueprints go into story 1.
 
 Each story changes the model, the code and the tests together, and adds the attributes of
 [Step 2](../SKILL.md#step-2-parse-the-bpmn) to the elements it brings. A service task or user task
 whose business code is more than a call gets that code in the story that brings the task.
+
+Every story file lists under `Read first` the `AGENTS.md` of the organisation, at least its list
+"Never do this", and the `AGENTS.md` of every taken blueprint the story touches. An agent which
+works on a story knows only its brief and the story file. So the rules have to be named there.
 
 Keep each story small. A story changes at most about ten files and adds or adapts one or two
 tests. If a story is bigger, split it along the business, not along the layers. For example, "the
@@ -194,17 +221,25 @@ clerk rejects a request" and "the clerk asks the customer for more documents" ar
 even if both start at the same gateway.
 
 A check must fail before the story is done and pass after it. A build that passes from the start
-proves nothing. So a check first tests that the new test file exists, then runs the build of the
-module:
+proves nothing. So a check first runs the structure check, then tests that the new test file
+exists, then runs the build of the module:
 
 ```bash
-test -f loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/RejectLoanIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7
+sh plan/checks/structure.sh && test -f loan-approval/workflow-module/src/test/java/blueprint/workflowmodule/loanapproval/RejectLoanIT.java && mvn -B -pl loan-approval/workflow-module -am verify -Pcamunda7
 ```
 
-Write `plan/INDEX.md`, one story file per line and an empty `plan/QUESTIONS.md`. Use the
-[Templates](#templates). Then commit the plan:
+A green build does not prove the structure. A workflow module which imports a generated client
+compiles fine. So write `plan/checks/structure.sh` now, from the tree in `Structure`, see the
+[template](#a-structure-check-planchecksstructuresh). It fails until story 1 has built the layout,
+and the check command of every story calls it. A story which adds a module to the tree adds its
+line to the script.
+
+Write `plan/INDEX.md`, one story file per line, an empty `plan/QUESTIONS.md`,
+`plan/checks/structure.sh` and `plan/checks/plan-lint.sh`. Use the [Templates](#templates). Run the plan check. Commit the plan
+only when it passes:
 
 ```bash
+sh plan/checks/plan-lint.sh
 git add plan/
 git commit -m "Plan the application in stories"
 ```
@@ -225,6 +260,9 @@ what it found. Only then does it write stories.
 
    This gives the VanillaBP version and the adapters, the workflow modules, the BPMN models and the
    configuration.
+   Write the Maven modules of the project as a tree into the section `Structure`, and
+   `plan/checks/structure.sh` from it. An update keeps the layout the project has, unless a story
+   changes it on purpose.
 2. Read what the update needs:
    - **A newer VanillaBP 2 version.** The release notes of each VanillaBP repository the project
      uses, from the version it has to the one it gets, and the wiki pages they link.
@@ -276,8 +314,20 @@ These are the steps for one story. Do them in this order, and do not skip one.
    git commit -m "S02 The clerk rejects a loan request"
    ```
 
-9. Take the next story: go back to step 6 of
-   [The first step of every start](#the-first-step-of-every-start-resume).
+9. After story 1 only: compare the layout with the reference before any other story starts.
+   Story 1 sets the layout for all later ones, so this is the cheapest place to catch a mistake.
+   Put the module tree of the project next to the tree of the base blueprint and next to the
+   section `Structure` of `plan/INDEX.md`:
+
+   ```bash
+   find . -name pom.xml -not -path '*/target/*' -not -path './plan/*' | sort
+   ```
+
+   Look at the dependencies as well. The workflow module names only ports, never an adapter or a
+   `client` module. The application names the adapters. If something differs, fix it in a new
+   commit before you go on, and write what you found into `Notes` of story 1.
+10. Take the next story: go back to step 6 of
+    [The first step of every start](#the-first-step-of-every-start-resume).
 
 After each story you may stop. Stop also when the user asks you to, or when your context is nearly
 full. The files hold everything the next agent needs.
@@ -322,29 +372,51 @@ at `S01` again.
 Job: loan approval application, Spring Boot, Camunda 7, JPA
 Started: 2026-11-19
 Profiles: camunda7
+Read: AGENTS.md of the organisation and blueprints.yaml (2026-11-19), AGENTS.md of every taken blueprint
+
+## Structure
+
+Taken from module-process-driver, the deepest taken blueprint of the chain of `base` fields.
+
+    application/                             depends on the workflow module and the adapters
+    loan-approval/workflow-module/           depends on the ports only
+    loan-approval/test-driver/               uses the client of the GUI API and of the simulator
+    external-systems/credit-rating/port/
+    external-systems/credit-rating/credit-rating-api/client/
+    external-systems/credit-rating/credit-rating-api/server/
+    external-systems/credit-rating/crediscore-adapter/
+    simulator/api/client/
+    simulator/api/server/
+    simulator/application/
 
 ## Blueprints
 
-| Blueprint             | Taken | Reason                                                      |
-|-----------------------|-------|-------------------------------------------------------------|
-| module-single         | yes   | one workflow module                                         |
-| module-multi          | no    | `module-structure`: module-single taken                     |
-| module-process-driver | yes   | the user wants to play through the process while developing |
-| persistence-mongodb   | no    | `aggregate-storage`: JPA of module-single is enough         |
-| bpmn-timer            | yes   | the model has a boundary timer on "Assess risk"             |
-| bpmn-signals          | no    | the model has no signal                                     |
+| Blueprint                  | Taken | Reason                                                      |
+|----------------------------|-------|-------------------------------------------------------------|
+| module-single              | yes   | one workflow module, the base of module-simulator           |
+| module-multi               | no    | `module-structure`: module-single taken                     |
+| module-simulator           | yes   | the base of module-process-driver                           |
+| module-process-driver      | yes   | the user wants to play through the process while developing |
+| persistence-mongodb        | no    | `aggregate-storage`: JPA of module-single is enough         |
+| bpmn-timer                 | yes   | the model has a boundary timer on "Assess risk"             |
+| bpmn-signals               | no    | the model has no signal                                     |
+| cockpit-user-task-frontend | no    | the job has no user interface of its own                    |
 
 ## Stories
 
-| Id  | Title                                         | Status      | Check command                                                                                                   |
-|-----|-----------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------|
-| S01 | A loan request is approved, from start to end | done        | `test -f loan-approval/src/test/java/.../ApproveLoanIT.java && mvn -B verify -Pcamunda7`                        |
-| S02 | The clerk rejects a loan request              | in-progress | `test -f loan-approval/src/test/java/.../RejectLoanIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7`   |
-| S03 | The clerk gets a reminder after three days    | open        | `sh plan/checks/S03.sh`                                                                                         |
-| S04 | The customer withdraws the request            | open        | `test -f loan-approval/src/test/java/.../WithdrawLoanIT.java && mvn -B -pl loan-approval -am verify -Pcamunda7` |
-| S05 | The process runs end to end                   | open        | `mvn -B verify -Pcamunda7`                                                                                      |
+| Id  | Title                                         | Status      | Check command                                                                                                                            |
+|-----|-----------------------------------------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| S01 | A loan request is approved, from start to end | done        | `sh plan/checks/structure.sh && test -f loan-approval/workflow-module/src/test/java/.../ApproveLoanIT.java && mvn -B verify -Pcamunda7`  |
+| S02 | The clerk rejects a loan request              | in-progress | `sh plan/checks/structure.sh && test -f loan-approval/workflow-module/src/test/java/.../RejectLoanIT.java && mvn -B verify -Pcamunda7`   |
+| S03 | The clerk gets a reminder after three days    | open        | `sh plan/checks/S03.sh`                                                                                                                  |
+| S04 | The customer withdraws the request            | open        | `sh plan/checks/structure.sh && test -f loan-approval/workflow-module/src/test/java/.../WithdrawLoanIT.java && mvn -B verify -Pcamunda7` |
+| S05 | The process runs end to end                   | open        | `sh plan/checks/structure.sh && mvn -B verify -Pcamunda7`                                                                                |
 ```
 
+The line `Read` says that you read the `AGENTS.md` of the organisation and the catalogue, as
+[Step 1](../SKILL.md#step-1-read-the-catalogue) asks, and when. The section `Structure` is the
+target layout of [Step 4](../SKILL.md#step-4-read-the-agentsmd-of-each-chosen-blueprint), with the
+names of your project. The adapter is named after the real system, here an invented `crediscore`.
 The section `Blueprints` lists every entry of the catalogue, taken or left out, with the reason, as
 [Step 3](../SKILL.md#step-3-pick-the-blueprints) says. The example shows only some rows. Write the
 full path in place of `...`. Each title says what a user can do when the story is done.
@@ -368,21 +440,25 @@ ends at "Loan rejected" and the customer gets a letter of rejection.
 ## Done when
 
 The test RejectLoanIT starts a loan request, completes "Assess risk" with "risk too high", and
-sees the process end at "Loan rejected". The test ApproveLoanIT of S01 still passes.
+sees the process end at "Loan rejected". The test ApproveLoanIT of S01 still passes. The process
+driver brings a case to the new state "loan rejected".
 
 ## Read first
 
-- plan/S01.md, section "Notes"
+- AGENTS.md of the organisation, section "Never do this"
 - AGENTS.md of the blueprint bpmn-gateways, section "Adding this blueprint to an existing project"
+- AGENTS.md of the blueprint module-process-driver, the part about process states and steps
+- plan/S01.md, section "Notes"
 - vanillabp skill, SKILL.md, section "Step 2: parse the BPMN", the part about gateways
-- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/
+- loan-approval/workflow-module/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/
 
 ## Files
 
-- loan-approval/src/main/resources/loan-approval/processes/camunda7/loan_approval.bpmn (change)
-- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/ (change)
-- loan-approval/src/main/java/blueprint/workflowmodule/loanapproval/LoanApprovalService.java (change)
-- loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/RejectLoanIT.java (new)
+- loan-approval/workflow-module/src/main/resources/loan-approval/processes/camunda7/loan_approval.bpmn (change)
+- loan-approval/workflow-module/src/main/java/blueprint/workflowmodule/loanapproval/assessrisk/ (change)
+- loan-approval/workflow-module/src/main/java/blueprint/workflowmodule/loanapproval/LoanApprovalService.java (change)
+- loan-approval/workflow-module/src/test/java/blueprint/workflowmodule/loanapproval/RejectLoanIT.java (new)
+- loan-approval/test-driver/src/main/java/blueprint/testdriver/loanapproval/ (change)
 
 ## Steps
 
@@ -392,9 +468,11 @@ sees the process end at "Loan rejected". The test ApproveLoanIT of S01 still pas
 - [ ] 3. Add the gateway "Risk acceptable?", the end event "Loan rejected" and the service task
       "Send rejection" from the full model to the model of the project. Give the gateway its
       conditions and its default flow.
-- [ ] 4. Add the endpoint parameter for the answer to the user task "Assess risk".
+- [ ] 4. Add the endpoint parameter for the answer to the user task "Assess risk" in the OpenAPI
+      file of the GUI API.
 - [ ] 5. Write the method of the service task "Send rejection" in LoanApprovalService.java.
-- [ ] 6. Run the check. It passes.
+- [ ] 6. Add the process state "loan rejected" and the step which leads there to the test driver.
+- [ ] 7. Run the check. It passes.
 
 ## Notes
 
@@ -409,9 +487,82 @@ whole application. One step is one file or one test, not "implement the process"
 ```sh
 #!/bin/sh
 set -e
-test -f loan-approval/src/test/java/blueprint/workflowmodule/loanapproval/ReminderIT.java
-grep -q 'timeDuration' loan-approval/src/main/resources/loan-approval/processes/camunda7/loan_approval.bpmn
-mvn -B -pl loan-approval -am verify -Pcamunda7
+sh plan/checks/structure.sh
+test -f loan-approval/workflow-module/src/test/java/blueprint/workflowmodule/loanapproval/ReminderIT.java
+grep -q 'timeDuration' loan-approval/workflow-module/src/main/resources/loan-approval/processes/camunda7/loan_approval.bpmn
+mvn -B verify -Pcamunda7
+```
+
+### A structure check, plan/checks/structure.sh
+
+Write it from the section `Structure`. It checks what a green build does not: that every module
+of the tree is there, and that the dependencies point the right way.
+
+```sh
+#!/bin/sh
+# The layout of plan/INDEX.md, section "Structure". A green build does not prove it.
+set -e
+fail() { echo "structure: $1"; exit 1; }
+
+for module in \
+    application \
+    loan-approval/workflow-module \
+    loan-approval/test-driver \
+    external-systems/credit-rating/port \
+    external-systems/credit-rating/credit-rating-api/client \
+    external-systems/credit-rating/credit-rating-api/server \
+    external-systems/credit-rating/crediscore-adapter \
+    simulator/api/client \
+    simulator/api/server \
+    simulator/application; do
+  test -f "$module/pom.xml" || fail "the module $module is missing"
+done
+
+# The workflow module knows the ports only: no adapter and no generated client in its code.
+! grep -rnE 'import [a-z0-9_.]+\.(api\.client|crediscore)\.' loan-approval/workflow-module/src/main \
+  || fail "the workflow module uses an adapter or a generated client"
+
+# Nobody writes a REST client by hand.
+! grep -rnE 'RestTemplate|WebClient|@HttpExchange|@GetExchange|@PostExchange' \
+    --include=*.java application loan-approval external-systems simulator \
+  || fail "a REST client is written by hand, use the generated one"
+
+# The application, not the workflow module, pulls in the adapter.
+grep -q '<artifactId>credit-rating-crediscore-adapter</artifactId>' application/pom.xml \
+  || fail "the application does not depend on the adapter of the port credit-rating"
+```
+
+### A plan check, plan/checks/plan-lint.sh
+
+Run it before you commit the plan, and again whenever you change the plan. It checks that every
+taken blueprint is in exactly one story, and that every story names the `AGENTS.md` of the
+organisation.
+
+```sh
+#!/bin/sh
+# Every taken blueprint is first used in exactly one story.
+failed=0
+
+taken=$(grep -E '^\| *[a-z0-9-]+ *\| *yes *\|' plan/INDEX.md | cut -d'|' -f2 | tr -d ' ')
+for blueprint in $taken; do
+  count=$(grep -h '^Blueprints used first here:' plan/S*.md \
+    | sed 's/^[^:]*://' | tr ',' '\n' | tr -d ' `' | grep -cx "$blueprint")
+  if [ "$count" -ne 1 ]; then
+    echo "plan: $blueprint is taken, but $count stories name it under 'Blueprints used first here'"
+    failed=1
+  fi
+done
+
+grep -q '^Read: ' plan/INDEX.md \
+  || { echo "plan: plan/INDEX.md does not say which AGENTS.md files were read"; failed=1; }
+grep -q '^## Structure' plan/INDEX.md \
+  || { echo "plan: plan/INDEX.md has no section Structure"; failed=1; }
+for story in plan/S*.md; do
+  grep -q 'AGENTS.md of the organisation' "$story" \
+    || { echo "plan: $story does not name the AGENTS.md of the organisation under Read first"; failed=1; }
+done
+
+exit $failed
 ```
 
 ### An entry of plan/QUESTIONS.md

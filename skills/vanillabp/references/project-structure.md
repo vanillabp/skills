@@ -52,34 +52,129 @@ user task gets a package of its own. Both are described under
 [rule 8](rules.md#8-one-primary-bpmn-process-per-workflow-aggregate). The classes keep their
 names and their roles in every one of those packages.
 
-## Every API is an OpenAPI file
+## The Maven layout comes from the `module-*` blueprints
 
-An API starts as an OpenAPI file. Its paths, parameters and answers are written there, and the
-build generates a Java interface from it with the `openapi-generator-maven-plugin`.
-`ApiController` implements that interface and holds the code of each call. It carries no path
-and no parameter annotation of its own, and no record for a request or an answer is written by
-hand.
+The package tree above is the inside of one workflow module. The Maven modules around it are
+not always the ones of `module-single`. The blueprints `module-multi`, `module-interaction`,
+`module-simulator` and `module-process-driver` change the Maven layout: ports and adapters in
+modules of their own, an `<name>-api` module per API, a simulator with its own `api` and
+`application`, a `test-driver` module, one module per workflow module.
 
-- An API which only people in a browser call, or only the module's own user interface:
+The field `base` of the catalogue says which blueprint an entry builds on. `module-process-driver`
+builds on `module-simulator`, which builds on `module-single`. Take the layout of the taken
+blueprint which is deepest in that chain. Never start from `module-single` and add the other
+modules from memory.
+
+This is the layout of `module-process-driver`, the deepest of them today. Read it from the
+delivered repository all the same, because it may have changed:
+
+```
+<root>
+├── application/                       the Spring Boot or Quarkus application. It pulls in the
+│                                        workflow module, the adapters of the ports, the BPMS
+│                                        adapter and, in the Maven profile test-driver only,
+│                                        the test driver
+├── <use-case>/
+│   ├── workflow-module/               the workflow module. It knows only the ports
+│   └── test-driver/                   plays the users through the GUI API; production never
+│                                        pulls it
+├── external-systems/
+│   └── <purpose>/                     one folder per port, named after what it is used for,
+│       │                                for example e-signature
+│       ├── port/                      the Java interface the workflow module calls
+│       ├── <purpose>-api/             the OpenAPI file of the system
+│       │   ├── client/                generated, used by the adapter
+│       │   └── server/                generated, implemented by the simulator
+│       └── <system>-adapter/          implements the port with the generated client, named
+│                                        after the system it talks to, for example sign-now
+└── simulator/
+    ├── api/                           the test API of the simulator, with client and server
+    └── application/                   plays every surrounding system
+```
+
+The blueprints name the adapter `rest-adapter`, because their systems are invented. In your
+project the adapter carries the name of the real system.
+
+Write this tree into the plan, as
+[Planning a new application](working-in-stories.md#planning-a-new-application) says. Story 1
+builds all of it, also the modules which stay nearly empty at first.
+
+## Every API is an OpenAPI file, and all code is generated from it
+
+An API starts as an OpenAPI file. Its paths, parameters and answers are written there. The build
+generates the Java interfaces from it with the `openapi-generator-maven-plugin`, and the
+TypeScript client of a user interface with the generator its blueprint names. Nobody writes a
+REST client by hand. That means no `RestTemplate`, `RestClient`, `WebClient` or `fetch` call with
+a path in it, no `@HttpExchange` or `@Path` interface, and no record for a request or an answer.
+This holds in the backend, in the frontend, in the test driver, in the simulator and in the
+tests. A server implements the generated interface. A caller injects the generated client.
+
+`ApiController` implements the generated interface and holds the code of each call. It carries no
+path and no parameter annotation of its own.
+
+Where the file lives depends on who calls the API:
+
+- Only people in a browser, or only the module's own user interface:
   `src/main/resources/<workflow-module-id>/openapi/<use-case>.yaml` in the module of the
-  controller, like every other resource of the module. Its tag is the use case, so the interface is `LoanApprovalApi` in the package `<use case package>.api`.
-- An API with a Java client, such as a system around the application, its simulator or
-  another module: a Maven module `<name>-api` with the file and the submodules `client` (what the
-  caller uses) and `server` (the interface the other side implements). The adapter which calls
-  it is named after the system it talks to, not after the technology.
+  controller, like every other resource of the module. Its tag is the use case, so the interface
+  is `LoanApprovalApi` in the package `<use case package>.api`. The user interface generates its
+  TypeScript client from the same file.
+- Any Java code, such as a system around the application, the simulator, the test driver or
+  another module: a Maven module `<name>-api` with the file and two submodules, `client` and
+  `server`. Each of them generates its classes from the file.
 
-A surrounding system is first a port: a Java interface the workflow module owns, which the
-business code calls. The blueprint `bpmn-service-task` shows it with `CreditRatingClient`, a
-`Local...` stand-in and a simulator in the tests. The port is not an API in the sense above and
-has no OpenAPI file. The OpenAPI module belongs behind it. Once the system is reached over HTTP,
-an adapter named after the system implements the port with the generated client. The blueprint
-`module-simulator` shows the whole way. If nobody can tell you the API of the system yet, for
+### Client and server are seen from the caller
+
+`client` is what the caller uses. `server` is what the other side implements. Which side is
+which follows from who calls whom, not from what is the application:
+
+| API | `server` is used by | `client` is used by |
+|---|---|---|
+| GUI API of a workflow module | the workflow module, its `ApiController` | the test driver |
+| API of a surrounding system | the simulator | the adapter which implements the port |
+| Test API of the simulator | the simulator | the test driver and the tests |
+
+A `client` module is ready to use. The application pulls in the module, sets the URL and the
+other properties in `application.yaml` and injects the generated interface. Nothing else. On
+Spring Boot the `client` module brings an auto-configuration for that. On Quarkus the generated
+interface is a REST client of Quarkus, which finds it while it builds. The `client` modules of
+`module-simulator` show both.
+
+### A callback turns the two around
+
+Some systems call back, for example an e-signature service when the contract is signed. The
+callback is a second OpenAPI file in the same `<name>-api` module, and it goes the other way:
+
+- `client` also carries the generated server interface of the callback. The adapter implements it
+  with its callback controller.
+- `server` also carries the generated client of the callback. The simulator uses it to call back.
+
+So the side which calls the system also receives its callbacks, and the simulator does both for
+the system. The `e-signature` module of `module-simulator` shows it.
+
+### A surrounding system is a port with adapters
+
+This is hexagonal architecture. A port is the inside, an adapter the outside.
+
+- The *port* is a Java interface the workflow module owns. The business code calls it. It lives in
+  a Maven module `port` of its own and is named after what the process uses it for, not after the
+  system: `e-signature`, `credit-rating`. The port has no OpenAPI file.
+- The *adapter* implements the port with the generated client. It is named after the system it
+  talks to: `sign-now-adapter` for the e-signature port. A second system for the same purpose is a
+  second adapter of the same port.
+- The workflow module depends on the port only, never on an adapter or a `client` module. The
+  application depends on the adapter. Tests of the workflow module may pull in the adapter and the
+  simulator in the test scope.
+
+The blueprint `bpmn-service-task` shows the first step: the port `CreditRatingClient` with a
+`Local...` stand-in and a simulator in the tests. `module-simulator` shows the whole way: port,
+adapter, `<name>-api` module and simulator. If nobody can tell you the API of the system yet, for
 example because the BPMN only names it, keep the port with its stand-in and say so. Do not
 invent an OpenAPI file for a system nobody described.
 
 The generators and their settings for both platforms are in
 [rule 7 of the blueprints' CONTRIBUTING.md](https://github.com/vanillabp-blueprints/blueprints/blob/main/CONTRIBUTING.md#rule-7-every-api-is-written-as-an-openapi-file).
-The blueprints `module-single` and `module-simulator` show both kinds.
+The blueprints `module-single` and `module-simulator` show both kinds of file.
 
 ## One class per direction
 

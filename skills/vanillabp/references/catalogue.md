@@ -33,7 +33,10 @@ memory. Ask the user to give you the file, or to let you reach the network.
 - `covers.bpmn`: the BPMN element types the blueprint shows. Compare them with the element
   types of the model you have to implement.
 - `covers.spi`: the SPI members the blueprint uses.
-- `base`: the blueprint it builds on. Most entries build on `module-single`.
+- `base`: the blueprint it builds on. Most entries build on `module-single`. Some build on
+  another one: `module-process-driver` builds on `module-simulator`. The deepest taken entry of
+  such a chain gives the Maven layout of the project, see
+  [project-structure.md](project-structure.md#the-maven-layout-comes-from-the-module--blueprints).
 - `composes_with`: the blueprints it combines with.
 - `choose_one`: the group of alternatives the entry belongs to, for example `module-structure`
   or `aggregate-storage`. Take at most one entry of each group, and exactly one of
@@ -44,6 +47,13 @@ memory. Ask the user to give you the file, or to let you reach the network.
 - `docs`: the documentation it links.
 - `platforms.<platform>`: per platform the `status`, the repository and the URL of its
   `AGENTS.md` (`agents_md`). Use only an entry whose status is `available`.
+
+`platforms` holds more than the two Java platforms. A frontend of the Business Cockpit, an entry
+whose id ends in `-frontend`, runs in the browser and builds with npm. So its platforms are the UI
+frameworks `react`, `angular` and `vue`. For such an entry, `springboot` and `quarkus` are always
+`not-applicable`. That is expected and no reason to leave it out. Look at the key of the UI
+framework of your job instead. If the job has no user interface of its own, no frontend entry
+applies, and that is the reason to write down.
 
 Several entries usually apply to one model, and that is normal. Each is a delta on top of
 `module-single`.
