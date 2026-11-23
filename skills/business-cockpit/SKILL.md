@@ -80,8 +80,11 @@ application with a local environment to run it. At the end it checks both agains
 Install it next to this one:
 
 ```bash
-gh skill install vanillabp/business-cockpit business-cockpit-creator
+gh skill install vanillabp/business-cockpit business-cockpit-creator@main
 ```
+
+Name `@main` until the cockpit 1.0 is released. Without a version, `gh skill` takes the newest
+release tag of the repository, and the releases before 1.0 do not hold the skill.
 
 Load that skill when the task is a new cockpit, its user interface or its backend application. Do
 not work from this page for that job.
