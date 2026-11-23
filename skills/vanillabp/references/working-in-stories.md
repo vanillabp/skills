@@ -20,6 +20,7 @@ or two files needs none.
 1. [Planning a new application](#planning-a-new-application)
 1. [Planning an update](#planning-an-update)
 1. [Working on one story](#working-on-one-story)
+1. [Driving sub-agents](#driving-sub-agents)
 1. [Questions never block](#questions-never-block)
 1. [Templates](#templates)
 
@@ -124,8 +125,13 @@ Cut the stories from the inside out:
    "everything goes well". It has no gateway, no deadline, no error and no cancelation.
 2. **One special case per story.** Each next story adds one thing that can differ from the simple
    path: a rejection, a deadline, a cancelation, an escalation, an answer from a partner system.
-   Take first the special cases that happen often or cost the most when they go wrong.
+   The model decides which elements form one case, and a fixed rule decides the order, see
+   [The same model gives the same stories](#the-same-model-gives-the-same-stories).
 3. **Extra views and reports last.** They come after the process is complete.
+
+Keep the stories small. A small story fits into the context of a weaker model, and its check
+shows soon whether the model went the wrong way. A big story lets a model lose its way before
+anything can be checked. The limits are in [Small stories](#small-stories).
 
 A process driver and a simulator are no story of their own, and never the last one. They grow
 with the process. Each story extends them for its own case: the driver gets the process state the
@@ -176,8 +182,59 @@ and the flow to "Loan rejected", and the driver gets the state "loan rejected". 
 timer to the user task. Each of them adds one integration test that walks through its case, and
 extends the driver and the simulator for it.
 
+In this example the user says that rejections are common, reminders are rarer, and withdrawals
+are the rarest. So the rejection comes first, then the reminder, then the withdrawal.
+
 Take the names of the blueprints from the catalogue, see
 [Step 1](../SKILL.md#step-1-read-the-catalogue). It may have changed since this page was written.
+
+### The same model gives the same stories
+
+Two agents with the same model and the same answers of the user must get the same stories. Plans
+can then be compared, and no model has to decide how to cut. So cut by these rules, and do not
+change the cut by hand:
+
+1. **The simplest path.** Walk from the start event to an end event. At each gateway take the flow
+   on which everything goes well. If two flows fit, take the one which reaches an end event with
+   fewer elements, and if that is a tie too, the default flow of the gateway. These elements are
+   story 1.
+2. **The groups of the special cases.** Each element off the simplest path belongs to one group.
+   A group starts at each flow of a gateway that the simplest path does not take, at each boundary
+   event and at each event subprocess. It holds every element you reach from there until the flow
+   joins the simplest path again or ends. An element that two groups reach belongs to the group
+   that comes first in the order of step 3.
+3. **The order of the groups.** Order them by how often the case happens, the most frequent first.
+   Take the frequency from the user or from the documentation of the model. A case which costs
+   much when it goes wrong may come first, but only when the user says so. Where nobody knows the
+   frequency, or two cases are equal, take the order of the elements in the BPMN file: the group whose first
+   element stands higher in the file comes first. This command prints the line of each element:
+
+   ```bash
+   grep -nE 'id="(Gateway_RiskAcceptable|Event_ReminderAfterThreeDays|Event_Withdrawn)"' loan_approval.bpmn
+   ```
+
+4. **One group, one story.** Each group becomes one story, in that order, with the numbers after
+   story 1. A group too big for one story is split as [Small stories](#small-stories) says.
+
+Write the order and its source into the line `Order:` in the head of `plan/INDEX.md`, for example
+"frequency from the user, 2026-11-19" or "nobody knows the frequency, order of the file". The next
+agent then gets the same order.
+
+### Small stories
+
+A story changes at most about eight files, and six are better. It adds exactly one new
+integration test, which walks through its case. It may adapt the tests of the stories before it.
+Count each line of the list `Files` of the story file. Name files there, not folders, wherever you
+know them. In story 1 the files of the base blueprint stand on one line, for example "the files of
+module-process-driver (copy)", because they do not count.
+
+When a story needs more than eight files, split it in two. The first story keeps the first
+elements of its group in the order of the BPMN file, up to a point where the case already ends in
+a valid state that a test can check. The second story takes the rest of the group. It gets the same
+id with the letter `b`, for example `S05b`, in the line of `plan/INDEX.md` right after `S05`, with
+its own story file, its own check command and its own new integration test. Split along the
+business, never along the layers. "The model of the rejection" and "the code of the rejection" are
+no stories. "The clerk rejects a loan request" and "The customer gets a letter of rejection" are.
 
 ## Planning a new application
 
@@ -190,12 +247,15 @@ Plan after you know the four answers of
    says. Story 1 builds all of it.
 2. **Find the simplest path.** Walk through the model from the start event to an end event, and
    take at each gateway the flow on which everything goes well. Write down the elements on the
-   way. This is story 1.
+   way. This is story 1. Step 1 of
+   [The same model gives the same stories](#the-same-model-gives-the-same-stories) says which flow
+   to take when two fit.
 3. **List the special cases.** Every element that is not on the simplest path belongs to a
    special case: the other flows of a gateway, a boundary event, a timer, a message that cancels.
-   Group the elements by the business case they serve, for example "rejection". Each group
-   becomes one story. Put them in the order of how often they happen. If you took a process
-   driver or a simulator, each of these stories extends them for its case.
+   Group the elements and order the groups as
+   [The same model gives the same stories](#the-same-model-gives-the-same-stories) says. Each
+   group becomes one story, or two when it is too big, see [Small stories](#small-stories). If you
+   took a process driver or a simulator, each of these stories extends them for its case.
 4. **Add the stories for extra views and reports**, if the user wants them.
 5. **The last story.** "The process runs end to end": run the whole build, start the application,
    walk through the process with the logged URLs, and fix every message of the startup validation,
@@ -215,10 +275,10 @@ Every story file lists under `Read first` the `AGENTS.md` of the organisation, a
 "Never do this", and the `AGENTS.md` of every taken blueprint the story touches. An agent which
 works on a story knows only its brief and the story file. So the rules have to be named there.
 
-Keep each story small. A story changes at most about ten files and adds or adapts one or two
-tests. If a story is bigger, split it along the business, not along the layers. For example, "the
-clerk rejects a request" and "the clerk asks the customer for more documents" are two stories,
-even if both start at the same gateway.
+Keep each story small: at most about eight files and one new integration test, as
+[Small stories](#small-stories) says. If a story is bigger, split it along the business, not along
+the layers. For example, "the clerk rejects a request" and "the clerk asks the customer for more
+documents" are two stories, even if both start at the same gateway.
 
 A check must fail before the story is done and pass after it. A build that passes from the start
 proves nothing. So a check first runs the structure check, then tests that the new test file
@@ -293,12 +353,16 @@ what it found. Only then does it write stories.
 These are the steps for one story. Do them in this order, and do not skip one.
 
 1. In `plan/INDEX.md`, change the status of the story from `open` to `in-progress`. Do not commit
-   this change on its own.
+   this change on its own. In the story file, write the time into the line `Started:`, unless the
+   agent that started you did that already.
 2. Read the story file `plan/<id>.md`. Then read the sections it lists under `Read first`, and only
    those. Do not read whole wiki pages or whole blueprints, so your context stays small.
 3. Work through the steps of the story file one by one. After each step, put a tick on it
-   (`- [x]`) and save the file. If you stop in the middle of a step, write into `Notes` what is done
-   and what comes next.
+   (`- [x]`) and save the file at once. The ticks are how others see your progress. If you stop in
+   the middle of a step, write into `Notes` what is done and what comes next. Keep to the line
+   `Time budget:` of the story file, 20 minutes unless it says otherwise. When the time is up and
+   the check does not pass yet, write into `Notes` which step you are on and what holds you up,
+   and tell the agent that started you, or the user.
 4. When something comes up that you have to decide and cannot find in the skill or the blueprints,
    do what [Questions never block](#questions-never-block) says.
 5. Run the check command of the story. If it fails, fix the code and run it again. Never change a
@@ -331,6 +395,77 @@ These are the steps for one story. Do them in this order, and do not skip one.
 
 After each story you may stop. Stop also when the user asks you to, or when your context is nearly
 full. The files hold everything the next agent needs.
+
+## Driving sub-agents
+
+Often one agent, the main agent, holds the plan and starts a sub-agent for each story. This section
+is for the main agent. It steers and does not build: it writes no code, puts no tick on a step and
+changes no test and no check. It reads `plan/INDEX.md`, the story files and `git log`, and it talks
+to the sub-agent. A main agent that builds on its own fills its context with code, and then nobody
+watches the sub-agent any more.
+
+### The time budget
+
+Every story file has the line `Time budget: 20 minutes`. Twenty minutes is the default for every
+story. For a story that is clearly larger, for example story 1 with the whole Maven layout, the
+main agent may raise the budget in the story file before the story starts. It writes the reason
+into `Notes`. It never raises the budget while a sub-agent works, as a way around a decision about
+a stuck sub-agent.
+
+### Starting a story
+
+1. Change the status of the story to `in-progress` and write the time into the line `Started:` of
+   the story file.
+2. Start one sub-agent. Tell it the root folder of the project and the story id, and that it works
+   as [Working on one story](#working-on-one-story) says: a tick after each step, saved at once, and
+   a stop at the end of the story.
+3. Run one sub-agent at a time. The stories build on each other, and they all change the same
+   model.
+
+### Watching the progress
+
+The ticks in the story file are the progress. Count them about every five minutes, and remember the
+count:
+
+```bash
+grep -c '^- \[x\]' plan/S02.md
+```
+
+- There is a new tick since the last count: the sub-agent moves on. Look again later.
+- There is no new tick since the last count: ask the sub-agent for its state and for what holds it
+  up. A short answer is enough: the step it is on, the obstacle, and what it tries next.
+- The sub-agent is stuck when one of these holds: there is still no new tick at the next count, the
+  time budget is used up, or its answer shows that it goes round in circles, for example the same
+  failing test with the same fix again.
+
+### When a sub-agent is stuck
+
+1. Stop the sub-agent.
+2. Write a note into `Notes` of the story file: the time, the step, the obstacle as the sub-agent
+   named it, and what it tried.
+3. Then do one of two things:
+   - Split the story when it is too big for one go: the obstacle is a piece of work of its own, or
+     the steps without a tick need more files than the story file names. Split it as
+     [Small stories](#small-stories) says. The elements whose steps are done stay in the story. The
+     other elements go into a new story with the same id and the letter `b`, for example `S02b`,
+     in the line of `plan/INDEX.md` right after it, with its own story file, check command and
+     integration test.
+   - Start a new sub-agent on the same story with a hint when the obstacle is clear: the note, and
+     one sentence about the way around, for example the section of the skill or the blueprint that
+     answers it.
+4. A story that gets stuck again after a hint is split. A story that cannot be split any more, for
+   example one with a single element, goes back to `open` with a note when it gets stuck again.
+   Write the obstacle into `plan/QUESTIONS.md`, as [Questions never block](#questions-never-block)
+   says, and go on with the next story that does not depend on it.
+
+### After a story
+
+Before the next story, check the end of this one: the status in `plan/INDEX.md` is `done`, the last
+commit names the story id, and the check command of the story passes. After story 1, also check
+that `Notes` of story 1 holds the result of the comparison of the layout, step 9 of
+[Working on one story](#working-on-one-story).
+
+Running a check is steering, not building. If it fails, the story goes back to a sub-agent.
 
 ## Questions never block
 
@@ -373,6 +508,7 @@ Job: loan approval application, Spring Boot, Camunda 7, JPA
 Started: 2026-11-19
 Profiles: camunda7
 Read: AGENTS.md of the organisation and blueprints.yaml (2026-11-19), AGENTS.md of every taken blueprint
+Order: rejection, reminder, withdrawal (frequency from the user, 2026-11-19)
 
 ## Structure
 
@@ -415,7 +551,9 @@ Taken from module-process-driver, the deepest taken blueprint of the chain of `b
 | S05 | The process runs end to end                   | open        | `sh plan/checks/structure.sh && mvn -B verify -Pcamunda7`                                                                                |
 ```
 
-The line `Read` says that you read the `AGENTS.md` of the organisation and the catalogue, as
+The line `Order` names the special cases in the order of their stories, and where the order comes
+from, see [The same model gives the same stories](#the-same-model-gives-the-same-stories). The line
+`Read` says that you read the `AGENTS.md` of the organisation and the catalogue, as
 [Step 1](../SKILL.md#step-1-read-the-catalogue) asks, and when. The section `Structure` is the
 target layout of [Step 4](../SKILL.md#step-4-read-the-agentsmd-of-each-chosen-blueprint), with the
 names of your project. The adapter is named after the real system, here an invented `crediscore`.
@@ -433,6 +571,8 @@ the VanillaBP version before and after, the adapters and the workflow modules.
 Workflow module: loan-approval
 Blueprints used first here: bpmn-gateways
 Depends on: S01
+Time budget: 20 minutes
+Started:
 
 ## Goal
 
@@ -482,7 +622,9 @@ driver brings a case to the new state "loan rejected".
 ```
 
 Write the steps so concrete that a weaker model can do each of them without thinking about the
-whole application. One step is one file or one test, not "implement the process".
+whole application. One step is one file or one test, not "implement the process". The main agent
+writes the time into `Started:` when the story starts. It raises `Time budget:` only before the
+start, with the reason in `Notes`, see [Driving sub-agents](#driving-sub-agents).
 
 ### A check script, plan/checks/S03.sh
 
@@ -539,8 +681,9 @@ grep -q '<artifactId>credit-rating-crediscore-adapter</artifactId>' application/
 ### A plan check, plan/checks/plan-lint.sh
 
 Run it before you commit the plan, and again whenever you change the plan. It checks that every
-taken blueprint is in exactly one story, and that every story names the `AGENTS.md` of the
-organisation.
+taken blueprint is in exactly one story, that every story names the `AGENTS.md` of the
+organisation, that every story file has the lines `Time budget:` and `Started:`, and that no story
+lists more than eight files.
 
 ```sh
 #!/bin/sh
@@ -564,6 +707,15 @@ grep -q '^## Structure' plan/INDEX.md \
 for story in plan/S*.md; do
   grep -q 'AGENTS.md of the organisation' "$story" \
     || { echo "plan: $story does not name the AGENTS.md of the organisation under Read first"; failed=1; }
+  grep -q '^Time budget: ' "$story" \
+    || { echo "plan: $story has no line 'Time budget:'"; failed=1; }
+  grep -q '^Started:' "$story" \
+    || { echo "plan: $story has no line 'Started:'"; failed=1; }
+  files=$(awk '/^## /{inside=($0=="## Files")} inside && /^- /{n++} END{print n+0}' "$story")
+  if [ "$files" -gt 8 ]; then
+    echo "plan: $story lists $files files, split it as 'Small stories' says"
+    failed=1
+  fi
 done
 
 exit $failed
