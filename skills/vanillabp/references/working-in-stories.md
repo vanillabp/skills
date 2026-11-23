@@ -359,10 +359,10 @@ These are the steps for one story. Do them in this order, and do not skip one.
    those. Do not read whole wiki pages or whole blueprints, so your context stays small.
 3. Work through the steps of the story file one by one. After each step, put a tick on it
    (`- [x]`) and save the file at once. The ticks are how others see your progress. If you stop in
-   the middle of a step, write into `Notes` what is done and what comes next. Keep to the line
-   `Time budget:` of the story file, 20 minutes unless it says otherwise. When the time is up and
-   the check does not pass yet, write into `Notes` which step you are on and what holds you up,
-   and tell the agent that started you, or the user.
+   the middle of a step, write into `Notes` what is done and what comes next. The line `Time budget:` of the story file, 20 minutes unless it says
+   otherwise, is a checkpoint. When the time is up and the check does not pass yet, write into
+   `Notes` which step you are on and what holds you up, and tell the agent that started you, or the
+   user. Then go on, unless they tell you otherwise.
 4. When something comes up that you have to decide and cannot find in the skill or the blueprints,
    do what [Questions never block](#questions-never-block) says.
 5. Run the check command of the story. If it fails, fix the code and run it again. Never change a
@@ -407,10 +407,11 @@ watches the sub-agent any more.
 ### The time budget
 
 Every story file has the line `Time budget: 20 minutes`. Twenty minutes is the default for every
-story. For a story that is clearly larger, for example story 1 with the whole Maven layout, the
-main agent may raise the budget in the story file before the story starts. It writes the reason
-into `Notes`. It never raises the budget while a sub-agent works, as a way around a decision about
-a stuck sub-agent.
+story. For a story that is clearly larger, for example story 1 with the whole Maven layout, the main
+agent may raise the budget in the story file before the story starts. It writes the reason into
+`Notes`. The budget is a checkpoint, not a limit. When it is used up, the main agent does not stop
+the sub-agent. It looks at the ticks and the `Notes` and decides, as [At the
+checkpoint](#at-the-checkpoint) says.
 
 ### Starting a story
 
@@ -434,9 +435,21 @@ grep -c '^- \[x\]' plan/S02.md
 - There is a new tick since the last count: the sub-agent moves on. Look again later.
 - There is no new tick since the last count: ask the sub-agent for its state and for what holds it
   up. A short answer is enough: the step it is on, the obstacle, and what it tries next.
-- The sub-agent is stuck when one of these holds: there is still no new tick at the next count, the
-  time budget is used up, or its answer shows that it goes round in circles, for example the same
+- The sub-agent is stuck when one of these holds: there is still no new tick at the next count, or
+  its answer shows that it goes round in circles, for example the same
   failing test with the same fix again.
+
+### At the checkpoint
+
+When the time budget is used up, the main agent decides. It does not stop the sub-agent for this
+alone.
+
+- The ticks still grow, and the steps left are few: let the sub-agent go on. Write a line into
+  `Notes` with the time and a new checkpoint, for example ten minutes later.
+- The ticks still grow, but many steps are left: let the sub-agent finish the step it is on. Then
+  ask yourself whether the story is cut too big. If it is, split the rest as a story of its own.
+- The ticks stopped, or the sub-agent goes round in circles: it is stuck. Go on as the next section
+  says.
 
 ### When a sub-agent is stuck
 
@@ -623,8 +636,9 @@ driver brings a case to the new state "loan rejected".
 
 Write the steps so concrete that a weaker model can do each of them without thinking about the
 whole application. One step is one file or one test, not "implement the process". The main agent
-writes the time into `Started:` when the story starts. It raises `Time budget:` only before the
-start, with the reason in `Notes`, see [Driving sub-agents](#driving-sub-agents).
+writes the time into `Started:` when the story starts. It raises `Time budget:` before the
+start, with the reason in `Notes`, and writes a new checkpoint into `Notes` when it lets a
+sub-agent go on after the budget, see [Driving sub-agents](#driving-sub-agents).
 
 ### A check script, plan/checks/S03.sh
 
