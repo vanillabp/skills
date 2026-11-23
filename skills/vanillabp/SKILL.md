@@ -36,7 +36,9 @@ application, a new workflow module, a new BPMN scenario and an upgrade to a newe
 alike. The plan lives in the project, in `plan/INDEX.md` and one file per story. Each story is a
 small business slice: one thing the business can do, built through the model, the code and the
 tests at once. The first story runs one case from start to end on the simplest path, and each
-next story adds one special case. Each story has a check command that shows when it is done. Any
+next story adds one special case. A story changes at most about eight files and adds one new
+integration test. Fixed rules cut and order the stories, so the same model gives the same plan.
+Each story has a check command that shows when it is done. Any
 agent, also a weaker model with a small context, can stop after any step and the next one goes on
 from the files.
 [references/working-in-stories.md](references/working-in-stories.md) has the procedure and the
@@ -63,7 +65,10 @@ Find out these four. Ask the user where the project does not answer them:
 
 Steps 1 to 4 are the planning. After step 4, write the plan as
 [Planning a new application](references/working-in-stories.md#planning-a-new-application) says.
-Steps 5 to 7 then run once per story, each story with its own check command.
+Steps 5 to 7 then run once per story, each story with its own check command. If you hand the
+stories to sub-agents, you steer and do not build: give each story a time budget, watch its ticks
+and decide when a sub-agent is stuck, as
+[Driving sub-agents](references/working-in-stories.md#driving-sub-agents) says.
 
 ### Step 1: read the catalogue
 
