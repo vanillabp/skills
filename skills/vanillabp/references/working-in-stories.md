@@ -204,8 +204,9 @@ change the cut by hand:
    joins the simplest path again or ends. An element that two groups reach belongs to the group
    that comes first in the order of step 3.
 3. **The order of the groups.** Order them by how often the case happens, the most frequent first.
-   Take the frequency from the user or from the documentation of the model. Where nobody knows it,
-   or two cases are equal, take the order of the elements in the BPMN file: the group whose first
+   Take the frequency from the user or from the documentation of the model. A case which costs
+   much when it goes wrong may come first, but only when the user says so. Where nobody knows the
+   frequency, or two cases are equal, take the order of the elements in the BPMN file: the group whose first
    element stands higher in the file comes first. This command prints the line of each element:
 
    ```bash
