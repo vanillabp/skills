@@ -108,6 +108,12 @@ Application modules which must not depend on a specific BPMS use the support mod
 `io.vanillabp:vanillabp-spring-boot-support` or `io.vanillabp:vanillabp-quarkus-support`. They
 bring the business SPI `io.vanillabp:vanillabp-integration-spi` along.
 
+Declare only what the module uses directly, and let the rest come transitively. A support module
+or an adapter brings `io.vanillabp:spi-for-java` along, so a module which depends on
+`vanillabp-spring-boot-support`, `vanillabp-quarkus-support` or an adapter drops an explicit
+`spi-for-java` dependency. Version 1 projects often carry one. After the swap, run
+`mvn dependency:tree` and remove every VanillaBP dependency which also arrives through another one.
+
 ## Persistence needs no dependency change
 
 Version 1 stored workflow aggregates through Spring Data, either JPA or MongoDB, and a
