@@ -25,6 +25,27 @@ another, and it is a different topic entirely.
 Look first, report, then change. If you apply an upgrade blindly, you cannot tell later which
 of its steps caused a surprise.
 
+Before you start, tell the user the steps, and which of them apply to this project:
+
+0. Survey the project and its tests. Run the tests on version 1. Nothing changes yet, except
+   for missing tests the user asked for.
+1. Lift the runtime to Java 21 and Spring Boot 4.1, or Quarkus 3.37. Below Spring Boot 4.1,
+   the application first moves to 4.1 while it is still on VanillaBP 1, and that is committed
+   on its own.
+2. Swap the dependencies.
+3. Declare the workflow modules, then move the configuration.
+4. Delete the transaction annotations.
+5. Verify against the BPMS, go through the behaviors which changed, and close the checklist.
+
+If the application reports to the Business Cockpit, the cockpit part runs along with these
+steps. It is surveyed in step 0, its adapter is swapped in step 2, its keys move in step 3, and
+its reports are checked in step 5. After every step the same tests run, and the user hears the
+result.
+
+A test which turns red stops the upgrade until it is clear whether VanillaBP is the cause. Name
+a red test whose cause lies outside VanillaBP to the user. Do not fix it, and do not hide it.
+[references/tests.md](references/tests.md#running-them-after-each-step) has the details.
+
 ### Step 0: survey the project
 
 Work through [references/detection.md](references/detection.md). It lists what to grep for and
@@ -42,9 +63,17 @@ what each finding means. Write down a list of what you found before you touch a 
 - every hand-written `ProcessService` implementation, test doubles included,
 - whether the application reports to the Business Cockpit: a version 1 cockpit adapter of the
   group `io.vanillabp.businesscockpit`, or keys below `vanillabp.cockpit`. If it does, work
-  through [references/business-cockpit.md](references/business-cockpit.md) as well.
+  through [references/business-cockpit.md](references/business-cockpit.md) as well,
+- every test which drives a workflow from outside the VanillaBP classes, and which processes
+  those tests cover. [references/tests.md](references/tests.md) says how to find them and what
+  counts.
 
 Show that list to the user, with the count per item. It is also the checklist you tick off.
+
+Then run the tests on version 1. They are the baseline, and it has to be green. If a process
+has no such test, ask the user whether to write one, and say why: a start after the upgrade
+does not prove that the workflows still behave. Tests you write run green on version 1 and are
+committed before anything else changes.
 
 Then add the upgrade notes of the repositories to that checklist. Each repository keeps an
 `UPGRADE.md` which lists every change a version 1 application has to deal with. Read these files
@@ -90,6 +119,8 @@ Spring Boot 4 split `spring-boot-autoconfigure` into
 modules. So some imports of your own code move, and the test slices need explicit dependencies.
 That is Spring's change, not VanillaBP's. Follow Spring Boot's own migration guide for it.
 
+Run the tests. They should be as green as the baseline.
+
 ### Step 2: swap the dependencies
 
 The adapter artifacts were renamed, and every adapter now has a Quarkus artifact too. The table
@@ -102,6 +133,10 @@ MongoDB through Spring Data, version 2 does out of the box.
 An application which reports to the Business Cockpit swaps its cockpit adapter in the same step.
 [references/business-cockpit.md](references/business-cockpit.md) has the artifacts. Imports from
 the cockpit's `commons` stop compiling here.
+
+The application cannot start yet, because its configuration is still the one of version 1. So
+build the main and the test code, and run no tests. A test which counts compiles without a
+change.
 
 ### Step 3: declare the workflow modules, then move the configuration
 
@@ -126,6 +161,9 @@ or the workflow allows the full sync. Decide that with the user, because it is a
 leaves the application. [references/behavior-changes.md](references/behavior-changes.md) has
 both ways out.
 
+Once the application starts, run the tests. If the start ends at a transaction annotation, that
+is step 4. Then run them after step 4.
+
 ### Step 4: delete the transaction annotations
 
 Remove `@Transactional` from workflow services. Check that nothing else wraps a `@WorkflowTask`
@@ -136,11 +174,14 @@ Before you delete an annotation, check whether the class is also the business se
 projects often keep both in one class, and the business methods still need their transaction.
 There the annotation stays, or the class gets split.
 
+Run the tests. If a combined class lost its annotation, the tests which go through the API show
+it here.
+
 ### Step 5: verify against the BPMS
 
-Start one workflow of every process, complete an asynchronous task, correlate a message. On a
-remote BPMS also look into the outbox store once. Entries there should reach DONE. Decide how
-long you want to keep them.
+Run the tests first. Then start one workflow of every process, complete an asynchronous task,
+correlate a message. On a remote BPMS also look into the outbox store once. Entries there should
+reach DONE. Decide how long you want to keep them.
 
 If the application reports to the Business Cockpit, check that every workflow module which
 reported before reports again. A module without a cockpit section starts quietly and reports

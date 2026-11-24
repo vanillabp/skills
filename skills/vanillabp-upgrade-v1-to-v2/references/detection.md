@@ -104,6 +104,11 @@ which has the section. Read the section there before you change anything.
 | Engine keys of version 1 | `grep -rn "history-level\|id-generator\|job-execution" --include="*.yaml" --include="*.yml" --include="*.properties" .` | Camunda 7. Every `camunda.bpm.*` key ends the boot now. The history level, the id generator, the wakeup job executor and the deployment-aware job executor each have a section of their own |
 | Suspended workflow | `grep -rn "SuspendedEntityInteractionException" --include="*.java" .` | Camunda 7. A task of a suspended workflow now raises `WorkflowSuspendedException` of the SPI instead |
 
+## Tests
+
+Find the tests which drive the workflows from outside, and judge which processes they cover.
+[tests.md](tests.md) has the greps and says which tests count. Run them before the first change.
+
 ## What no grep will find
 
 Say these out loud in the report, because a person has to answer them:
