@@ -138,9 +138,19 @@ with the process. Each story extends them for its own case: the driver gets the 
 story reaches and the steps which lead there, and the simulator answers for every surrounding
 system the story brings. This is part of the `Done when` of each story.
 
+The dev shell grows the same way. A workflow module with parts for people in a Business Cockpit,
+such as the form of a user task, the page of a case or a button in the header, is delivered with
+a dev shell, see [Step 5](../SKILL.md#step-5-apply-the-deltas). Story 1 builds the dev shell of
+each user interface project together with the first form: the entry point, the npm script which
+starts it, and, if the project has a process driver, the page "Process driver". Each later story
+which adds a part for people also adds it to the dev shell. Its `Done when` then says "the part
+is shown in the dev shell", for example "the form of Check contract is shown in the dev shell".
+The dev shell is no story of its own either.
+
 Story 1 also brings the technical base: the whole Maven layout of the section `Structure` in
 `plan/INDEX.md`, and the persistence. It builds every module of that tree, also the ones which
-stay nearly empty at first, such as a port with one method or a test driver with one step. The
+stay nearly empty at first, such as a port with one method, a test driver with one step or a dev
+shell with one form. The
 layout is fixed in story 1, because every later story builds on it. Inside the modules, add
 nothing that only a later story uses. The files the base blueprint brings do not count toward the
 size of a story.
@@ -571,7 +581,9 @@ from, see [The same model gives the same stories](#the-same-model-gives-the-same
 target layout of [Step 4](../SKILL.md#step-4-read-the-agentsmd-of-each-chosen-blueprint), with the
 names of your project. The adapter is named after the real system, here an invented `crediscore`.
 The section `Blueprints` lists every entry of the catalogue, taken or left out, with the reason, as
-[Step 3](../SKILL.md#step-3-pick-the-blueprints) says. The example shows only some rows. Write the
+[Step 3](../SKILL.md#step-3-pick-the-blueprints) says. An entry taken only as a pattern says
+`yes, as a pattern` in the column `Taken`, for example `cockpit-process-driver-frontend` in a
+job whose user interface is in Vue. The example shows only some rows. Write the
 full path in place of `...`. Each title says what a user can do when the story is done.
 For an update, the head also holds what step 1 of [Planning an update](#planning-an-update) found:
 the VanillaBP version before and after, the adapters and the workflow modules.
@@ -634,6 +646,10 @@ driver brings a case to the new state "loan rejected".
 (Written while working: what is done, what was tried, what is left.)
 ```
 
+In a job with parts for people, the story which adds a part also names the dev shell: under
+`Files` the file of the dev shell which lists the parts (change), under `Done when` the sentence
+"the part is shown in the dev shell", and a step which adds the part there.
+
 Write the steps so concrete that a weaker model can do each of them without thinking about the
 whole application. One step is one file or one test, not "implement the process". The main agent
 writes the time into `Started:` when the story starts. It raises `Time budget:` before the
@@ -690,21 +706,33 @@ done
 # The application, not the workflow module, pulls in the adapter.
 grep -q '<artifactId>credit-rating-crediscore-adapter</artifactId>' application/pom.xml \
   || fail "the application does not depend on the adapter of the port credit-rating"
+
+# Every user interface project has a dev shell and an npm script which starts it.
+# One line per user interface project of the section "Structure". Leave the loop out if there is none.
+for ui in loan-approval-frontend; do
+  test -d "$ui/dev-shell" || fail "the user interface $ui has no dev shell"
+  grep -qE '"(start|dev)" *:' "$ui/package.json" \
+    || fail "the user interface $ui has no npm script start or dev for its dev shell"
+done
 ```
+
+Write the folder of the dev shell and the name of the script as the project has them. The
+blueprint `cockpit-process-driver-frontend` uses `dev-shell/` and `npm run start`.
 
 ### A plan check, plan/checks/plan-lint.sh
 
 Run it before you commit the plan, and again whenever you change the plan. It checks that every
 taken blueprint is in exactly one story, that every story names the `AGENTS.md` of the
-organisation, that every story file has the lines `Time budget:` and `Started:`, and that no story
-lists more than eight files.
+organisation, that every story file has the lines `Time budget:` and `Started:`, that no story
+lists more than eight files, and that story 1 names the dev shell when the plan has a user
+interface.
 
 ```sh
 #!/bin/sh
 # Every taken blueprint is first used in exactly one story.
 failed=0
 
-taken=$(grep -E '^\| *[a-z0-9-]+ *\| *yes *\|' plan/INDEX.md | cut -d'|' -f2 | tr -d ' ')
+taken=$(grep -E '^\| *[a-z0-9-]+ *\| *yes[^|]*\|' plan/INDEX.md | cut -d'|' -f2 | tr -d ' ')
 for blueprint in $taken; do
   count=$(grep -h '^Blueprints used first here:' plan/S*.md \
     | sed 's/^[^:]*://' | tr ',' '\n' | tr -d ' `' | grep -cx "$blueprint")
@@ -731,6 +759,13 @@ for story in plan/S*.md; do
     failed=1
   fi
 done
+
+# A plan with a user interface builds its dev shell in story 1.
+# A taken frontend entry, also one taken as a pattern, means the plan has one.
+if echo "$taken" | grep -q -- '-frontend$'; then
+  grep -qi 'dev shell' plan/S01.md \
+    || { echo "plan: the plan has a user interface, but plan/S01.md does not name the dev shell"; failed=1; }
+fi
 
 exit $failed
 ```

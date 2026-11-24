@@ -9,6 +9,7 @@ generate.
 | Concepts, workflow modules, platform integration, configuration | [adapter-platform-integration wiki](https://github.com/vanillabp/adapter-platform-integration/wiki) |
 | Everything specific to one BPMS | the wiki of the respective [BPMS adapter](https://github.com/vanillabp/adapter-platform-integration/wiki/BPMS-adapters) |
 | The blueprints themselves | [the organisation page](https://github.com/vanillabp-blueprints) |
+| The dev shell for the parts of a module in a Business Cockpit, and its simulator | [Developing UI components locally](https://github.com/vanillabp/business-cockpit/wiki/Developing-UI-components-locally), and the skill `business-cockpit` |
 | VanillaBP in general | [vanillabp.io](https://www.vanillabp.io) |
 
 ## Pages of the platform wiki

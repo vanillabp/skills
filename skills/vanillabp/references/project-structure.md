@@ -102,6 +102,48 @@ Write this tree into the plan, as
 [Planning a new application](working-in-stories.md#planning-a-new-application) says. Story 1
 builds all of it, also the modules which stay nearly empty at first.
 
+## What the process driver offers the dev shell
+
+The tests call the process driver in Java. A person who works on a form wants the same: a case
+in the state they need, in a few seconds. So the driver also has a REST API. The dev shell of the
+user interface calls it, and so do the tests of a user interface. `module-process-driver` shows
+it in `ProcessDriverController` and in its OpenAPI file `process-driver.yaml`. Every driver you
+build has this API, also when the job has no user interface yet:
+
+- It is an OpenAPI file in the module of the driver,
+  `<use-case>/test-driver/src/main/resources/<workflow-module-id>/openapi/process-driver.yaml`.
+  The controller implements the interface generated from it. The user interface generates its
+  TypeScript client from the same file.
+- `GET /<workflow-module-id>/api/process-driver/states` lists the names of the states the driver
+  can reach.
+- `GET /<workflow-module-id>/api/process-driver/advance-to?state=<name>` starts a new case and
+  brings it to that state. The other query parameters are the test data of a scenario, for
+  example the amount and the credit score. Each has a default, so the state alone is enough.
+- The answer names the state, the id of the case, which is the id of the workflow aggregate, and
+  the id of the user task which is open in that state. A state where the workflow ended has no
+  user task, so the id is missing. Tell such a state by the missing id, never by its name.
+- An unknown state answers 400 with the known states. A case which did not reach the state
+  answers 500 and says why, from the step which timed out.
+- Every request is a GET, so a person can use the API in a browser too.
+- The driver runs inside the application, but only where somebody switches it on: the Maven
+  profile `test-driver` puts it on the classpath, and `process-driver.enabled: true` wakes it.
+  Both are off by default, so production never has it.
+
+### The page "Process driver" of the dev shell
+
+The blueprint `cockpit-process-driver-frontend` shows this page in React. Build the same page in
+every UI framework, and take that blueprint as the pattern if the catalogue has no twin for your
+framework. Add the page to the dev shell of the cockpit, not to a dev shell of its own.
+
+1. The start page of the dev shell links to the page "Process driver".
+2. The page loads the states from `states`. It never holds a list of its own.
+3. The developer picks a state and changes the test data of the scenario if they want, for
+   example the customer or the amount. The fields start with defaults which reach every state.
+4. A click calls `advance-to` through the generated client.
+5. The page links the case, and, if the answer has a user task, the page of that user task in
+   the dev shell. There the dev shell draws the form of the module.
+6. If the driver is switched off, the page says which profile and which property switch it on.
+
 ## Every API is an OpenAPI file, and all code is generated from it
 
 An API starts as an OpenAPI file. Its paths, parameters and answers are written there. The build

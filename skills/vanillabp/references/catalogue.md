@@ -46,7 +46,8 @@ memory. Ask the user to give you the file, or to let you reach the network.
 - `bpms`: the engines the blueprint is built and tested against.
 - `docs`: the documentation it links.
 - `platforms.<platform>`: per platform the `status`, the repository and the URL of its
-  `AGENTS.md` (`agents_md`). Use only an entry whose status is `available`.
+  `AGENTS.md` (`agents_md`). Use only an entry whose status is `available`. A frontend entry is
+  the one exception, see below.
 
 `platforms` holds more than the two Java platforms. A frontend of the Business Cockpit, an entry
 whose id ends in `-frontend`, runs in the browser and builds with npm. So its platforms are the UI
@@ -54,6 +55,13 @@ frameworks `react`, `angular` and `vue`. For such an entry, `springboot` and `qu
 `not-applicable`. That is expected and no reason to leave it out. Look at the key of the UI
 framework of your job instead. If the job has no user interface of its own, no frontend entry
 applies, and that is the reason to write down.
+
+A frontend entry whose key for your UI framework is missing or not `available` still counts when
+the job needs what it shows. Take it as a pattern: read it in the UI framework it has, and build
+the same in yours, as [Step 3](../SKILL.md#step-3-pick-the-blueprints) says. Leave it out only if
+the job does not need what it shows. `cockpit-process-driver-frontend` is such an entry: it shows
+the page "Process driver" of a dev shell in React, and a job in Vue or Angular builds the same
+page.
 
 Several entries usually apply to one model, and that is normal. Each is a delta on top of
 `module-single`.
