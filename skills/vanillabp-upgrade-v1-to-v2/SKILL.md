@@ -43,6 +43,29 @@ what each finding means. Write down a list of what you found before you touch a 
 
 Show that list to the user, with the count per item. It is also the checklist you tick off.
 
+Then add the upgrade notes of the repositories to that checklist. Each repository keeps an
+`UPGRADE.md` which lists every change a version 1 application has to deal with. Read these files
+on the `main` branch:
+
+- always
+  [spi-for-java](https://github.com/vanillabp/spi-for-java/blob/main/UPGRADE.md) and
+  [adapter-platform-integration](https://github.com/vanillabp/adapter-platform-integration/blob/main/UPGRADE.md),
+- on Camunda 7, the file of the
+  [Camunda 7 adapter](https://github.com/vanillabp/camunda7-adapter/blob/main/UPGRADE.md),
+- on Camunda 8, the file of the
+  [Camunda 8 adapter](https://github.com/vanillabp/camunda8-adapter/blob/main/UPGRADE.md),
+- on CIB seven, the file of the
+  [CIB seven adapter](https://github.com/vanillabp/cibseven-adapter/blob/main/UPGRADE.md). VanillaBP 1
+  had no adapter for CIB seven. So that file sends you on to the Camunda 7 file and says what
+  differs. Read both.
+- on Operaton, the Camunda 7 file. VanillaBP 1 had no adapter for Operaton either, and the
+  Operaton adapter has no `UPGRADE.md`. Its README says how it differs from the Camunda 7 adapter.
+
+Every section of a file is one item. That means each heading below `## 2.0`, down to the
+smallest one, and in spi-for-java also the `1.1.0` list, because a version 1 application skips
+that line too. Tick each item off, or mark it "does not apply, because ...". Several items only
+end the start of the application. You want to find those here, not at the first boot.
+
 ### Step 1: lift the runtime
 
 Java 21, Spring Boot 4.1 or Quarkus 3.37. Spring Boot 4 split `spring-boot-autoconfigure` into
@@ -98,6 +121,9 @@ Then read [references/behavior-changes.md](references/behavior-changes.md) with 
 are the things which changed although your code did not. Several of them need a decision, not
 an edit.
 
+Before you call the upgrade done, go through the `UPGRADE.md` items from step 0 once more. Every
+one of them should be ticked off or carry its reason.
+
 ## Two decisions that are easy to miss
 
 Both are silent: the application starts and runs. And both change which workflows it can still
@@ -130,5 +156,9 @@ meant to go away once nobody depends on it. Ask the VanillaBP team if you need a
 
 Everything here follows
 [Migrating from VanillaBP 1 to 2](https://github.com/vanillabp/adapter-platform-integration/wiki/Migrating-from-version-1).
-That page decides, and it wins where this skill is out of date. Building or extending an
+That page decides, and it wins where this skill is out of date.
+
+The `UPGRADE.md` files from step 0 are the list to check against, so that nothing is left out.
+They are written for contributors. So they are shorter about the reasons, and where one of them
+and the wiki page disagree, the wiki page wins. Building or extending an
 application is a different job with its own skill, `vanillabp`.
