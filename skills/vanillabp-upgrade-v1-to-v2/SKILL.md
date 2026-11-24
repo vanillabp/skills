@@ -1,6 +1,6 @@
 ---
 name: vanillabp-upgrade-v1-to-v2
-description: Upgrade an application from VanillaBP 1 to VanillaBP 2. Surveys a version 1 project for everything that has to change, then applies it. Covers Java 21 and Spring Boot 4 or Quarkus 3.37, the renamed adapter artifacts, the META-INF/workflow-module descriptor, default-adapter becoming prioritized-adapters, adapter settings moving to vanillabp.adapters, the removed ProcessService overloads, @BpmnProcess.primary, and the transaction annotations on workflow services. Also covers the first start refusing an aggregate which shares everything, workflow services being found because they are beans, the version attribute of @BpmnProcess taking effect, decision tables deployed with their workflow module, the Camunda 8 wait for its cluster, and the Camunda 7 serialization format a nested value needs. Use whenever a project depends on VanillaBP 1.x, whenever someone asks about upgrading or migrating to VanillaBP 2, or whenever a build against VanillaBP 2 fails on those symbols.
+description: Upgrade an application from VanillaBP 1 to VanillaBP 2. Surveys a version 1 project for everything that has to change, then applies it. Covers Java 21 and Spring Boot 4 or Quarkus 3.37, the renamed adapter artifacts, the META-INF/workflow-module descriptor, default-adapter becoming prioritized-adapters, adapter settings moving to vanillabp.adapters, the removed ProcessService overloads, @BpmnProcess.primary, and the transaction annotations on workflow services. Also covers the first start refusing an aggregate which shares everything, workflow services being found because they are beans, the version attribute of @BpmnProcess taking effect, decision tables deployed with their workflow module, the Camunda 8 wait for its cluster, the Camunda 7 serialization format a nested value needs, and reporting to the Business Cockpit. Use whenever a project depends on VanillaBP 1.x, whenever someone asks about upgrading or migrating to VanillaBP 2, or whenever a build against VanillaBP 2 fails on those symbols.
 license: Apache-2.0
 metadata:
   author: vanillabp
@@ -39,7 +39,10 @@ what each finding means. Write down a list of what you found before you touch a 
 - every occurrence of the removed API,
 - every `@TaskParam` and its declared type, against the value the model maps into it,
 - every transaction annotation which reaches a `@WorkflowTask` method,
-- every hand-written `ProcessService` implementation, test doubles included.
+- every hand-written `ProcessService` implementation, test doubles included,
+- whether the application reports to the Business Cockpit: a version 1 cockpit adapter of the
+  group `io.vanillabp.businesscockpit`, or keys below `vanillabp.cockpit`. If it does, work
+  through [references/business-cockpit.md](references/business-cockpit.md) as well.
 
 Show that list to the user, with the count per item. It is also the checklist you tick off.
 
@@ -60,6 +63,10 @@ on the `main` branch:
   differs. Read both.
 - on Operaton, the Camunda 7 file. VanillaBP 1 had no adapter for Operaton either, and the
   Operaton adapter has no `UPGRADE.md`. Its README says how it differs from the Camunda 7 adapter.
+- if the application reports to the Business Cockpit, the section
+  [Up to 1.0.0](https://github.com/vanillabp/business-cockpit/blob/main/UPGRADE.md#up-to-100) of
+  the cockpit's file. Many of its entries are about the cockpit application itself. They do not
+  apply to an application which only reports.
 
 Every section of a file is one item. That means each heading below `## 2.0`, down to the
 smallest one, and in spi-for-java also the `1.1.0` list, because a version 1 application skips
@@ -81,6 +88,10 @@ write the coordinate. Then build. The compiler points straight at the three remo
 and at `@BpmnProcess.primary`. Persistence needs nothing here. What version 1 could do, JPA and
 MongoDB through Spring Data, version 2 does out of the box.
 
+An application which reports to the Business Cockpit swaps its cockpit adapter in the same step.
+[references/business-cockpit.md](references/business-cockpit.md) has the artifacts. Imports from
+the cockpit's `commons` stop compiling here.
+
 ### Step 3: declare the workflow modules, then move the configuration
 
 Version 2 wants the module id stated explicitly in a `META-INF/workflow-module` descriptor.
@@ -92,7 +103,10 @@ workflows of that module lose their configuration.
 
 Then move the configuration key by key, following
 [references/configuration.md](references/configuration.md). Start the application afterwards
-and follow the startup messages. They name every missing key.
+and follow the startup messages. They name every missing key. Most cockpit keys stay where they
+are. [references/business-cockpit.md](references/business-cockpit.md) lists the ones which are
+gone, and says when a module's cockpit section ends the start. Ask the user for the value of
+`initiator-source`, because it has no default.
 
 One of those messages ends the start instead of guiding you through it, and it is written for
 exactly a version 1 application. An aggregate which holds nothing back shares every attribute
@@ -116,6 +130,10 @@ There the annotation stays, or the class gets split.
 Start one workflow of every process, complete an asynchronous task, correlate a message. On a
 remote BPMS also look into the outbox store once. Entries there should reach DONE. Decide how
 long you want to keep them.
+
+If the application reports to the Business Cockpit, check that every workflow module which
+reported before reports again. A module without a cockpit section starts quietly and reports
+nothing. The first start logs one INFO line for each such module.
 
 Then read [references/behavior-changes.md](references/behavior-changes.md) with the user. Those
 are the things which changed although your code did not. Several of them need a decision, not
@@ -162,3 +180,8 @@ The `UPGRADE.md` files from step 0 are the list to check against, so that nothin
 They are written for contributors. So they are shorter about the reasons, and where one of them
 and the wiki page disagree, the wiki page wins. Building or extending an
 application is a different job with its own skill, `vanillabp`.
+
+The Business Cockpit part follows the cockpit's own
+[Migrating from version 1](https://github.com/vanillabp/business-cockpit/wiki/Migrating-from-version-1)
+page. Upgrading a Business Cockpit of your own, the cockpit application itself, is another job
+with its own skill, `business-cockpit-upgrade-to-blocking`.
