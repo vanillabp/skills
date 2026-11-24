@@ -62,6 +62,25 @@ version ends in the same cluster line, for example `-8.9`. The Process-Engine-AP
 version 1 predecessor. On Quarkus the part which is the same for every BPMS is an extension of
 its own. Add it next to the BPMS extension, as the wiki of the adapter shows.
 
+On Spring Boot, import the cockpit's BOM in `dependencyManagement`. It manages the versions of the
+cockpit's own artifacts, such as `business-cockpit-spring-boot-support`, and imports
+`io.vanillabp:vanillabp-bom` and Spring Boot's BOM as well. So the cockpit artifacts in the POM
+lose their versions, and an import of `vanillabp-bom` next to it can go:
+
+```xml
+<dependency>
+  <groupId>io.vanillabp.businesscockpit</groupId>
+  <artifactId>business-cockpit-bom</artifactId>
+  <version>1.0.0</version>
+  <type>pom</type>
+  <scope>import</scope>
+</dependency>
+```
+
+The cockpit adapters are released on their own, in their own repositories, so they keep their
+version. Do not import the BOM on Quarkus: it brings Spring Boot's versions, and those would win
+over the ones Quarkus brings. There, name each version yourself.
+
 A module which imported classes from `commons` depends on
 `io.vanillabp.businesscockpit:business-cockpit-spring-boot-support` instead, or on
 `business-cockpit-quarkus-support` on Quarkus. `support` brings the cockpit's SPI along. A
