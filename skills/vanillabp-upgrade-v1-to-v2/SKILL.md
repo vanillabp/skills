@@ -46,6 +46,19 @@ A test which turns red stops the upgrade until it is clear whether VanillaBP is 
 a red test whose cause lies outside VanillaBP to the user. Do not fix it, and do not hide it.
 [references/tests.md](references/tests.md#running-them-after-each-step) has the details.
 
+Watch the log while a build with tests runs. Do not wait for its end: a full build can take half
+an hour, while the first failure shows after two minutes. Run the build in the background, write
+its output to a file, and read the summary lines as they come in. Maven writes one per test
+class:
+
+```
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
+```
+
+Gradle marks a failed test with `FAILED`. As soon as a line shows `Failures` or `Errors` above 0,
+or a test `FAILED`, stop the build. Find the cause and fix it, or name it to the user if it lies
+outside VanillaBP. Then start the full build again from the beginning.
+
 ### Step 0: survey the project
 
 Work through [references/detection.md](references/detection.md). It lists what to grep for and
