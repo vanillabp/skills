@@ -125,7 +125,11 @@ for each one: take it or leave it out. Leave an entry out only for a reason you 
   `not-applicable` entry names the reason why that platform cannot have it. Do not port it
   yourself. For a frontend, an entry whose id ends in `-frontend`, `<platform>` is the UI
   framework of the job (`vue`, `react` or `angular`), not Spring Boot or Quarkus. Its
-  `not-applicable` for `springboot` and `quarkus` is expected and no reason to leave it out;
+  `not-applicable` for `springboot` and `quarkus` is expected and no reason to leave it out.
+  A frontend entry whose key for your UI framework is missing or not `available` is no reason
+  either, if the job needs what it shows. Take it as a pattern: read its `AGENTS.md` and its code
+  in the UI framework it has, and build the same thing in yours. Write `yes, as a pattern` into
+  the plan. Leave such an entry out only if the job does not need what it shows;
 - you took another entry of the same `choose_one` group (see below);
 - the user said no.
 
@@ -189,6 +193,21 @@ as `e-signature`, and its adapter after the system, such as `sign-now`.
 has the details, callbacks included. [references/rules.md](references/rules.md) has the rules which hold for every
 blueprint. If you break one of them, a VanillaBP application stops working without a word.
 
+A workflow module with parts for people in a Business Cockpit, such as the form of a user task,
+the page of a case or a button in the header, is delivered with a dev shell. The dev shell is a
+small web application which stands in for the cockpit while somebody works on these parts. It
+draws them from their source files, so a change shows while you type, and it needs no cockpit,
+no MongoDB and no BPMS. Behind it runs the dev shell simulator of the cockpit, or the simulator of
+the module which extends it. Build it for each user interface project of the module, in its UI
+framework, with the dev shell package of the cockpit (`<scope>/bc-dev-shell-<framework>`) and
+its entry point, for example `bootstrapDevShell` in React. One npm script starts it on the dev
+server of the framework, with the proxy the package brings. It shows every part of the module.
+If the project has a process driver, the dev shell also gets a page "Process driver", see
+[The page "Process driver"](references/project-structure.md#the-page-process-driver-of-the-dev-shell).
+What the dev shell must do is in the skill `business-cockpit`, section
+[The dev shell is part of the delivery](https://github.com/vanillabp/skills/blob/main/skills/business-cockpit/SKILL.md#the-dev-shell-is-part-of-the-delivery).
+A module without a dev shell is not done.
+
 ### Step 6: verify by running it
 
 ```bash
@@ -237,7 +256,8 @@ with PUT and completes its user task with POST. Only the endpoints of the user i
 this. The start, the views and the callback of a surrounding system stay GET, also in an
 application which has a user interface. If the user interface is not part of the application,
 for example because it is built in a project of its own, log the `curl` command which stands in
-for it.
+for it. While somebody works on the user interface, the dev shell calls these endpoints through
+the proxy of its dev server, below `/wm/<module-id>/`, the same paths as in the cockpit.
 
 ## When something is not covered
 
