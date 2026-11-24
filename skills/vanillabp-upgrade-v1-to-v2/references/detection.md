@@ -10,7 +10,7 @@ what a hit means. Use whatever tool is there. The patterns matter, not the comma
 | VanillaBP version | `grep -rn "io.vanillabp\|org.camunda.community.vanillabp" --include=pom.xml --include="*.gradle*" .` | a `1.x` version confirms this is a version 1 project |
 | Old adapter artifact | `grep -rn -- "-spring-boot-adapter" --include=pom.xml .` | renamed in version 2, see [dependencies.md](dependencies.md) |
 | Java version | `grep -rn "maven.compiler\|java.version\|<release>" --include=pom.xml .` | has to become 21 |
-| Platform version | `grep -rn "spring-boot-starter-parent\|quarkus.platform.version" --include=pom.xml .` | has to become Spring Boot 4.1 or Quarkus 3.37 |
+| Platform version | `grep -rn "spring-boot-starter-parent\|quarkus.platform.version" --include=pom.xml .` | has to become Spring Boot 4.1 or Quarkus 3.37. Below Spring Boot 4.1, first move to 4.1 on the last releases of version 1, see [dependencies.md](dependencies.md) |
 | Camunda 8 cluster minor | not in the project: ask which cluster the application talks to, or read the gateway version from its topology | the Camunda 8 adapter is published once per minor version of the cluster, and that minor version is part of its version, see [dependencies.md](dependencies.md) |
 
 ## Workflow modules

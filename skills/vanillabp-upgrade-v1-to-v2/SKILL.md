@@ -75,7 +75,18 @@ end the start of the application. You want to find those here, not at the first 
 
 ### Step 1: lift the runtime
 
-Java 21, Spring Boot 4.1 or Quarkus 3.37. Spring Boot 4 split `spring-boot-autoconfigure` into
+Java 21, Spring Boot 4.1 or Quarkus 3.37. Aim at Spring Boot 4.1, also when a newer Spring Boot
+is out. Spring Boot 4.2 needs the dependencies of VanillaBP 2, so it comes after this upgrade.
+
+If the application is not on Spring Boot 4.1 yet, it first moves there while it is still on
+VanillaBP 1. Upgrade Spring Boot 4.1 together with the last releases of version 1, which support
+it: `io.vanillabp:spring-boot-support` 1.4.0, the Camunda 7 adapter 1.6.0, the Camunda 8 adapter
+1.10.1 and, if the application reports to the Business Cockpit, its adapter 0.4.3.
+[references/dependencies.md](references/dependencies.md) has the coordinates. Get the application
+running again and commit, then move to VanillaBP 2. That keeps the changes of Spring Boot 4 and
+those of VanillaBP 2 apart.
+
+Spring Boot 4 split `spring-boot-autoconfigure` into
 modules. So some imports of your own code move, and the test slices need explicit dependencies.
 That is Spring's change, not VanillaBP's. Follow Spring Boot's own migration guide for it.
 
