@@ -90,6 +90,20 @@ method call. That leaves out `${order.getTotal()}`, although it stops working. A
 like that raises an incident, so the engine reports it. The startup report exists for the
 silent half.
 
+## Items from the adapters' upgrade notes
+
+A few items of the adapters' `UPGRADE.md` files can be found by a grep. Each row names the file
+which has the section. Read the section there before you change anything.
+
+| Look for | Command | Meaning |
+|---|---|---|
+| Standard loop | `grep -rn "standardLoopCharacteristics" --include="*.bpmn" .` | Camunda 7 and Camunda 8 run such an activity once, in version 1 too. Version 2 ends the boot if one of your workflow services claims the process. See both adapters' files |
+| Ad-hoc subprocess | `grep -rn "adHocSubProcess" --include="*.bpmn" .` | Camunda 8 only. The flavour with a task definition of its own ends the boot if your workflow service claims the process |
+| Form reference as an expression | `grep -rn 'externalReference="=' --include="*.bpmn" .` | Camunda 8 only. A form reference which starts with `=` ends the boot if your workflow service claims the process |
+| Engine datasource | `grep -rn "camundaBpmDataSource\|camundaBpmTransactionManager" --include="*.java" .` | Camunda 7. The bean still works. But a `camundaBpmDataSource` without a `camundaBpmTransactionManager` now gets a transaction manager of the adapter's own |
+| Engine keys of version 1 | `grep -rn "history-level\|id-generator\|job-execution" --include="*.yaml" --include="*.yml" --include="*.properties" .` | Camunda 7. Every `camunda.bpm.*` key ends the boot now. The history level, the id generator, the wakeup job executor and the deployment-aware job executor each have a section of their own |
+| Suspended workflow | `grep -rn "SuspendedEntityInteractionException" --include="*.java" .` | Camunda 7. A task of a suspended workflow now raises `WorkflowSuspendedException` of the SPI instead |
+
 ## What no grep will find
 
 Say these out loud in the report, because a person has to answer them:
