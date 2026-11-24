@@ -5,8 +5,21 @@
 | | Version 1 | Version 2 |
 |---|---|---|
 | Java | 17 | 21 |
-| Spring Boot | 3.x | 4.1 |
-| Quarkus | 3.x | 3.37 |
+| Spring Boot | 3.x, and 4.1 with the last releases | 4.1 |
+| Quarkus | not supported | 3.37 |
+
+The target is Spring Boot 4.1, also when a newer one is out. Spring Boot 4.2 needs the
+dependencies of VanillaBP 2, so it is a step after the upgrade.
+
+An application below Spring Boot 4.1 first moves to 4.1 on VanillaBP 1. These are the last
+releases of version 1, and they support Spring Boot 4.1. Upgrade them together with Spring Boot:
+
+| Artifact | Version |
+|---|---|
+| `io.vanillabp:spring-boot-support` | 1.4.0 |
+| `org.camunda.community.vanillabp:camunda7-spring-boot-adapter` | 1.6.0 |
+| `org.camunda.community.vanillabp:camunda8-spring-boot-adapter` | 1.10.1 |
+| `io.vanillabp.businesscockpit:camunda7-spring-boot-adapter` or `camunda8-spring-boot-adapter` | 0.4.3 |
 
 Spring Boot 4 split `spring-boot-autoconfigure` into modules. So some Spring imports of your
 own code move. `@EntityScan`, for example, goes from
