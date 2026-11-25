@@ -698,10 +698,23 @@ done
 ! grep -rnE 'import [a-z0-9_.]+\.(api\.client|crediscore)\.' loan-approval/workflow-module/src/main \
   || fail "the workflow module uses an adapter or a generated client"
 
-# Nobody writes a REST client by hand.
-! grep -rnE 'RestTemplate|WebClient|@HttpExchange|@GetExchange|@PostExchange' \
-    --include=*.java application loan-approval external-systems simulator \
-  || fail "a REST client is written by hand, use the generated one"
+# Nobody writes a REST client by hand. Generated code is no such client. It lives below target/
+# or carries the mark of the OpenAPI generator, so the check skips it.
+hand_written() {
+  grep -rlE "$1" --include=*.java --exclude-dir=target \
+      application loan-approval external-systems simulator \
+    | xargs -r grep -LE '@[a-z.]*Generated\(value = "org\.openapitools\.codegen'
+}
+# A RestClient may be built and passed on, as in the one factory which turns a generated
+# interface into a client. A path called on it is a client written by hand, unless the file
+# reads something which is no API, such as a static file. List such files here, one path per
+# line as grep prints it, and say why in a comment above.
+no_api=""
+clients=$( { hand_written 'RestTemplate|WebClient|@[A-Za-z]*Exchange\b'
+             hand_written '\.uri\(' | xargs -r grep -lw 'RestClient'; } \
+           | grep -vxF "$no_api" || true)
+test -z "$clients" \
+  || fail "a REST client is written by hand, use the generated one: $(echo $clients)"
 
 # The application, not the workflow module, pulls in the adapter.
 grep -q '<artifactId>credit-rating-crediscore-adapter</artifactId>' application/pom.xml \
