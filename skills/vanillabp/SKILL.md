@@ -202,6 +202,14 @@ the module which extends it. Build it for each user interface project of the mod
 framework, with the dev shell package of the cockpit (`<scope>/bc-dev-shell-<framework>`) and
 its entry point, for example `bootstrapDevShell` in React. One npm script starts it on the dev
 server of the framework, with the proxy the package brings. It shows every part of the module.
+A BPMN diagram, on the page of a case, in a dev shell or as a picture in a build, is drawn with
+[bpmn-js](https://bpmn.io/toolkit/bpmn-js/). Never draw it yourself from the diagram part of the
+model. In a user interface use its Viewer or NavigatedViewer and mark the current and the passed
+steps with markers or overlays. Take the package from npmjs, also when the npm registry of the
+cockpit does not carry it, and load it only on the page which shows the diagram. A build renders
+a picture with [bpmn-to-image](https://github.com/bpmn-io/bpmn-to-image). The bpmn.io logo stays
+visible, its license asks for it.
+
 If the project has a process driver, the dev shell also gets a page "Process driver", see
 [The page "Process driver"](references/project-structure.md#the-page-process-driver-of-the-dev-shell).
 What the dev shell must do is in the skill `business-cockpit`, section

@@ -207,6 +207,11 @@ version. Check each hit of the grep. A method without the attribute still serves
 [Which versions of your model a method serves](https://github.com/vanillabp/business-cockpit/wiki/Reporting-workflows-and-user-tasks#which-versions-of-your-model-a-method-serves)
 has the details.
 
+An application which extends the dev shell simulator now gets its defaults, among them
+`spring.jpa.hibernate.ddl-auto=update` and `spring.jpa.open-in-view=false`. If the application
+relies on open-in-view, it sets it to `true` itself. The upgrade notes of the cockpit,
+[UPGRADE.md](https://github.com/vanillabp/business-cockpit/blob/main/UPGRADE.md), have the details.
+
 The start checks everything. Version 1 found a broken setting at the first event, or never. Now
 the log of the first start names every gap.
 
