@@ -56,8 +56,9 @@ The test code stays. Its resources move.
 ## A Camunda 8 test on Camunda Process Test
 
 A version 1 application on Camunda 8 usually tests with Camunda Process Test:
-`@SpringBootTest` together with `@CamundaSpringProcessTest`. Such a test keeps its setup and its
-test methods. Add one test dependency next to Camunda's own one:
+`@SpringBootTest` together with `@CamundaSpringProcessTest`. Such a test keeps its test class.
+Add one test dependency next to Camunda's own one, and two keys to its test configuration (see
+below):
 
 ```xml
 <dependency>
@@ -80,18 +81,24 @@ cluster after that. It deletes everything in the cluster after each test method,
 too. Version 1 used the client of Camunda's Spring integration, which Camunda Process Test fills
 before each test method. The adapter of version 2 builds its own client. With the dependency it
 waits for the cluster of each test method, deploys the workflow modules there and opens its
-workers, and it closes them again after the method. Without it, the adapter looks for a cluster
-while the context starts, finds none and fails the test once `startup-wait` runs out, ten minutes
-by default.
+workers, and it closes them again after the method. Without it, the test ends at its start, and
+the message names the artifact.
 
-Two keys in the test configuration help:
+The test configuration needs two keys. The cluster of Camunda Process Test has no multi-tenancy,
+and the default deploys each workflow module into a tenant of its own:
 
 - `vanillabp.adapters.<id>.name-clash-avoidance: none`, which is what `use-tenants: false` was in
-  version 1. The cluster of Camunda Process Test has no multi-tenancy, and the default deploys
-  each workflow module into a tenant of its own.
-- `vanillabp.adapters.<id>.request-timeout: PT1S`. After each test method the adapter waits until
-  its workers have ended their open request at the cluster, up to ten seconds by default. Three
-  test methods took 48 seconds with the default and 17 seconds with `PT1S`.
+  version 1.
+- `vanillabp.adapters.<id>.accept-unscoped-identifiers: true`, which `none` asks for.
+
+Without them every test method fails before it starts, and the message names the key. On 8.10 the
+application also sets `vanillabp.adapters.<id>.job-lease`, but it does that for its own start
+already.
+
+One more key makes the tests faster: `vanillabp.adapters.<id>.request-timeout: PT1S`. After each
+test method the adapter waits until its workers have ended their open request at the cluster, up
+to ten seconds by default. Three test methods took 48 seconds with the default and 17 seconds with
+`PT1S`.
 
 A test whose methods use no Camunda assertion may also drop Camunda Process Test and start a
 cluster of its own before the context, with Testcontainers and the `camunda/camunda` image of the
@@ -99,8 +106,10 @@ line. The adapter's wiki page
 [Testing](https://github.com/vanillabp/camunda8-adapter/wiki/Testing) shows both ways and the
 limits of the first one.
 
-This was tried with Spring Boot 4.1.2 and three test methods in one class, against
-`camunda-process-test-spring-boot-4` 8.8.47, `camunda-process-test-spring` 8.9.28 and 8.10.10.
+This was tried on 2026-11-25 with Spring Boot 4.1.3, against
+`camunda-process-test-spring-boot-4` 8.8.47, `camunda-process-test-spring` 8.9.28 and 8.10.10:
+two test classes with three test methods each, one with a service task, one with a user task and a
+listener in the model.
 
 A test on `@ZeebeSpringTest` or `@ZeebeProcessTest` has to move to Camunda Process Test first.
 Camunda deprecated those in 8.8 and removed them in 8.10. That is Camunda's change, not
