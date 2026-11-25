@@ -153,6 +153,8 @@ REST client by hand. That means no `RestTemplate`, `RestClient`, `WebClient` or 
 a path in it, no `@HttpExchange` or `@Path` interface, and no record for a request or an answer.
 This holds in the backend, in the frontend, in the test driver, in the simulator and in the
 tests. A server implements the generated interface. A caller injects the generated client.
+Generated code is not written by hand. Neither is the one factory which turns a generated
+interface into a client with a `RestClient`, as long as it calls no path of its own.
 
 `ApiController` implements the generated interface and holds the code of each call. It carries no
 path and no parameter annotation of its own.

@@ -208,6 +208,15 @@ What the dev shell must do is in the skill `business-cockpit`, section
 [The dev shell is part of the delivery](https://github.com/vanillabp/skills/blob/main/skills/business-cockpit/SKILL.md#the-dev-shell-is-part-of-the-delivery).
 A module without a dev shell is not done.
 
+Such a module names its access groups in `getAccessibleToGroups` of its
+`WorkflowModuleDetailsProvider`. A user who is in none of them never loads a file of the module,
+so they cannot open the form of their own task. So every candidate group of a user task of the
+module is an access group, and so is every group which may see a case of the module. A feature
+role, for example the right to use a button in the header, implies an access group. It never
+replaces one. The blueprint
+[`cockpit-header-extension-backend`](https://github.com/vanillabp-blueprints/blueprints/tree/main/blueprints-cockpit/cockpit-header-extension-backend)
+keeps the two apart.
+
 ### Step 6: verify by running it
 
 ```bash
