@@ -33,7 +33,7 @@ does not exist yet, ask the user where it goes.
 1. Look whether a plan is there:
 
    ```bash
-   ls plan/INDEX.md plan/QUESTIONS.md
+   ls plan/INDEX.md plan/QUESTIONS-DRAFT.md plan/QUESTIONS.md
    ```
 
    - No `plan/INDEX.md`: plan the job. For a new application, see
@@ -54,13 +54,13 @@ does not exist yet, ask the user where it goes.
    ```
 
 4. If there is one, run its check command from the column `Check command`:
-   - The check passes: the work is done and only the end of the story is missing. Do steps 6 to 10
+   - The check passes: the work is done and only the end of the story is missing. Do steps 6 to 11
      of [Working on one story](#working-on-one-story).
    - The check fails: open the story file `plan/<id>.md`. Read its section `Notes` and the steps
      that have no tick yet. Go on with the first step without a tick.
 5. If no story is in progress, but `git status` shows changes: these changes belong to no story.
    Do not throw them away. Run `git stash push -u -m "changes found when resuming"`, write a
-   question about them into `plan/QUESTIONS.md`, and go on.
+   question about them into `plan/QUESTIONS-DRAFT.md`, and go on.
 6. If no story is in progress, take the first line with the status `open`:
 
    ```bash
@@ -68,8 +68,10 @@ does not exist yet, ask the user where it goes.
    ```
 
    Then work on it as [Working on one story](#working-on-one-story) says.
-7. If there is no open story, the job is done. Tell the user, and name the questions in
-   `plan/QUESTIONS.md` that still wait for an answer:
+7. If there is no open story, the job is done. First move the questions of
+   `plan/QUESTIONS-DRAFT.md` into `plan/QUESTIONS.md`, as
+   [At the end of the plan](#at-the-end-of-the-plan) says. Then tell the user, and name the
+   questions in `plan/QUESTIONS.md` that still wait for an answer:
 
    ```bash
    grep -n '^Answer: open' plan/QUESTIONS.md
@@ -86,14 +88,15 @@ fails, I go on with step 3 of plan/S05.md."
 All files of the plan are in the folder `plan/` at the root of the project. They are committed like
 the code.
 
-| File                       | What it holds                                                     |
-|----------------------------|-------------------------------------------------------------------|
-| `plan/INDEX.md`            | one line per story: id, title, status, check command              |
-| `plan/<id>.md`             | one file per story: goal, what to read, files, steps, notes       |
-| `plan/QUESTIONS.md`        | the questions that came up, each with the default you took        |
-| `plan/checks/<id>.sh`      | only where a check command does not fit into the table, see below |
-| `plan/checks/structure.sh` | the check of the layout, which every check command calls          |
-| `plan/checks/plan-lint.sh` | the check of the plan itself, run before the plan is committed    |
+| File                       | What it holds                                                          |
+|----------------------------|------------------------------------------------------------------------|
+| `plan/INDEX.md`            | one line per story: id, title, status, check command                   |
+| `plan/<id>.md`             | one file per story: goal, what to read, files, steps, notes            |
+| `plan/QUESTIONS-DRAFT.md`  | the questions of the stories so far, each with the default taken       |
+| `plan/QUESTIONS.md`        | the questions for the user: blocking ones at once, the rest at the end |
+| `plan/checks/<id>.sh`      | only where a check command does not fit into the table, see below      |
+| `plan/checks/structure.sh` | the check of the layout, which every check command calls               |
+| `plan/checks/plan-lint.sh` | the check of the plan itself, run before the plan is committed         |
 
 The status of a story is one of three words: `open`, `in-progress` or `done`. `plan/INDEX.md` is the
 only place that holds the status. Git holds the history: every story ends with one commit that
@@ -304,7 +307,8 @@ compiles fine. So write `plan/checks/structure.sh` now, from the tree in `Struct
 and the check command of every story calls it. A story which adds a module to the tree adds its
 line to the script.
 
-Write `plan/INDEX.md`, one story file per line, an empty `plan/QUESTIONS.md`,
+Write `plan/INDEX.md`, one story file per line, an empty `plan/QUESTIONS-DRAFT.md`, an empty
+`plan/QUESTIONS.md`,
 `plan/checks/structure.sh` and `plan/checks/plan-lint.sh`. Use the [Templates](#templates). Run the plan check. Commit the plan
 only when it passes:
 
@@ -380,15 +384,19 @@ These are the steps for one story. Do them in this order, and do not skip one.
    [Step 7](../SKILL.md#step-7-fix-what-startup-validation-reports).
 6. Read your own change once against [code-that-reads-like-prose.md](code-that-reads-like-prose.md)
    and run the checks there.
-7. In `plan/INDEX.md`, change the status from `in-progress` to `done`.
-8. Commit the story, in one commit, with the story id in the message:
+7. Read `plan/QUESTIONS-DRAFT.md` from the top. Delete every entry which this story made
+   obsolete: the story built what the question missed, or it answered the question on the way.
+   For each deleted entry, write one line into `Notes` of the story file: the id and why it is
+   obsolete. An entry which is still open stays as it is.
+8. In `plan/INDEX.md`, change the status from `in-progress` to `done`.
+9. Commit the story, in one commit, with the story id in the message:
 
    ```bash
    git add -A
    git commit -m "S02 The clerk rejects a loan request"
    ```
 
-9. After story 1 only: compare the layout with the reference before any other story starts.
+10. After story 1 only: compare the layout with the reference before any other story starts.
    Story 1 sets the layout for all later ones, so this is the cheapest place to catch a mistake.
    Put the module tree of the project next to the tree of the base blueprint and next to the
    section `Structure` of `plan/INDEX.md`:
@@ -400,7 +408,7 @@ These are the steps for one story. Do them in this order, and do not skip one.
    Look at the dependencies as well. The workflow module names only ports, never an adapter or a
    `client` module. The application names the adapters. If something differs, fix it in a new
    commit before you go on, and write what you found into `Notes` of story 1.
-10. Take the next story: go back to step 6 of
+11. Take the next story: go back to step 6 of
     [The first step of every start](#the-first-step-of-every-start-resume).
 
 After each story you may stop. Stop also when the user asks you to, or when your context is nearly
@@ -485,7 +493,7 @@ alone.
 
 Before the next story, check the end of this one: the status in `plan/INDEX.md` is `done`, the last
 commit names the story id, and the check command of the story passes. After story 1, also check
-that `Notes` of story 1 holds the result of the comparison of the layout, step 9 of
+that `Notes` of story 1 holds the result of the comparison of the layout, step 10 of
 [Working on one story](#working-on-one-story).
 
 Running a check is steering, not building. If it fails, the story goes back to a sub-agent.
@@ -499,10 +507,27 @@ default, take the default and go on.
    choice that is easiest to change later and that commits to nothing. For a gateway, that is the
    flow which does not spend money or order anything, as
    [Step 2](../SKILL.md#step-2-parse-the-bpmn) says.
-2. Add an entry to `plan/QUESTIONS.md`, see the [template](#an-entry-of-planquestionsmd). Give it the
-   next free number, `ASK-001`, `ASK-002` and so on.
+2. Add an entry to `plan/QUESTIONS-DRAFT.md`, see the [template](#an-entry-of-planquestionsmd).
+   Give it the next free number, `ASK-001`, `ASK-002` and so on. The number stays when the entry
+   moves into `plan/QUESTIONS.md`.
 3. Write one sentence into `Notes` of the story file: which question, which default.
 4. Go on with the default.
+
+The draft keeps the user from reading questions which a later story answers anyway. Many
+questions of an early story are gone two stories later, because the work went on. So after every
+story, step 7 of [Working on one story](#working-on-one-story) deletes the entries which that story
+made obsolete.
+
+A question goes into `plan/QUESTIONS.md` at once, not into the draft, in two cases: the next story
+cannot start without the answer, or a story goes back to `open` because of it. Such a question
+blocks, and the user has to see it now.
+
+### At the end of the plan
+
+When no story is open any more, move the entries still in `plan/QUESTIONS-DRAFT.md` into
+`plan/QUESTIONS.md`. Read each one once more and delete what the plan as a whole made obsolete.
+Sort the rest by topic, with a heading per topic, so a reader sees related questions together.
+Each entry keeps its number and its default. Then delete the draft and commit both files.
 
 When the user answers later, write the answer into the entry. If it differs from the default, add a
 new story at the end of `plan/INDEX.md` that changes the default into the answer. Its title names
@@ -517,7 +542,8 @@ git mv plan/INDEX.md plan/QUESTIONS.md plan/S*.md plan/archive/2026-11-19/
 git commit -m "Archive the finished plan"
 ```
 
-Use the date of the day. Move `plan/checks` as well, if it is there. The ids of the new plan start
+Use the date of the day. Move `plan/checks` as well, if it is there, and `plan/QUESTIONS-DRAFT.md`
+if it is still there. The ids of the new plan start
 at `S01` again.
 
 ## Templates
@@ -784,6 +810,8 @@ exit $failed
 ```
 
 ### An entry of plan/QUESTIONS.md
+
+An entry of `plan/QUESTIONS-DRAFT.md` looks the same.
 
 ```markdown
 ## ASK-003 Which flow of the gateway "Risk acceptable?" is the default?
