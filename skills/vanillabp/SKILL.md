@@ -237,6 +237,34 @@ them only from there.
 Every blueprint ships an integration test which plays through its aspect. Keep that test and
 adapt it to the use case. Generated code which never ran is a guess.
 
+Keep the output of the tests quiet. Every test class which starts an application, a container
+or a BPMS uses the output suppression of `io.vanillabp:test-utils`. Add it with scope `test` and
+without a version, because `vanillabp-bom` manages it:
+
+```java
+import io.vanillabp.integration.test.utils.SuppressOutputExtension;
+
+@ExtendWith(SuppressOutputExtension.class)
+@SuppressOutputExtension.SuppressBackgroundOutput
+@SpringBootTest
+class LoanApprovalTest {
+```
+
+Write the two annotations above `@SpringBootTest`, `@QuarkusTest` and `@Testcontainers`. JUnit
+registers extensions in the order they are written, and these three register one of their own.
+What starts before the suppression prints to the build output.
+
+A green test then prints nothing, and a red test replays what it printed. Without the extension,
+the logs of the application, of Testcontainers and of the database driver fill the build output.
+A stack trace which a passing test logs on purpose then looks like an error, and the real failure
+is hard to find. Judge a test by the result of Surefire and Failsafe, not by a stack trace in the
+log. `@SuppressBackgroundOutput` also drops what background threads print after the class has
+finished.
+
+A test which checks the log takes a `CapturedOutput` parameter from the same package, instead of
+Spring Boot's `OutputCaptureExtension`. Both extensions take over `System.out`, so use only one.
+To prove that a sentence is missing, read `getAllOfThisTest()`, not `getAll()`.
+
 ### Step 7: fix what startup validation reports
 
 VanillaBP checks the wiring between BPMN and code while the application boots. On Quarkus it
